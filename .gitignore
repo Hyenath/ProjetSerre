@@ -1,0 +1,12 @@
+/back/node_modules
+/back/config.json
+/back/package-lock.json
+/back/package.json
+/back/phpmyadmin
+
+/frontreact/node_modules
+/frontreact/package.json
+/frontreact/package-lock.json
+/frontreact/README.md
+/frontreact/public/robots.txt
+/frontreact/public/manifest.json
