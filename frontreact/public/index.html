@@ -40,4 +40,33 @@
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
   </body>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      window.location.href = "login.html"; // Redirige si pas de token
+    } else {
+      fetch("http://192.168.65.74:3001/login", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({}) // Envoie une requête vide pour déclencher `checkToken`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message !== "Déjà connecté") {
+          localStorage.removeItem("token"); // Supprime le token invalide
+          window.location.href = "login.html"; // Redirige vers login
+        }
+      })
+      .catch(error => {
+        console.error("Erreur de vérification du token:", error);
+        window.location.href = "login.html"; // En cas d'erreur, redirection
+      });
+    }
+  });
+  </script>
 </html>

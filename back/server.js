@@ -28,24 +28,6 @@ db.connect(err => {
     }
 });
 
-//----------------DEFAULT PAGE IF TOKEN TO REDIRECT--------------//
-app.get("/", (req, res) => {
-    const authHeader = req.headers["authorization"];
-
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-        const token = authHeader.split(" ")[1];
-
-        jwt.verify(token, config.key, (err, decoded) => {
-            if (err) {
-                return res.status(401).json({ message: "Token invalide ou expiré" });
-            }
-            // Si le token est valide, rediriger vers la page React
-            res.redirect("http://localhost:3001/dashboard");
-        });
-    } else {
-        res.send("Bienvenue sur le backend ! Connectez-vous pour accéder à l'application.");
-    }
-});
 
 //-------------------------------LIMITEUR DE REQUETE ET CONNEXION-----------------------------------------//
 
@@ -190,6 +172,9 @@ app.post(config.token, (req, res) => {
         });
     });
 });
+
+
+
 
 // Démarrer le serveur
 app.listen(3001, () => {

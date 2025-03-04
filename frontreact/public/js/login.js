@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (data.message === 'Connexion réussie') {
             alert('Connexion réussie');
             localStorage.setItem('token', data.token);
-            window.location.href = '/dashboard';
+            window.location.href = 'index.html';
           } else {
             alert(data.message); 
           }
@@ -60,4 +60,3 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
   });
-  
