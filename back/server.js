@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const app = express();
 
 const config = require('./config.json');
+const data = require('./data.json');
 
 //------------------------------------------------MISE EN PLACE DE L'API---------------------------------------------------------//
 
@@ -173,8 +174,47 @@ app.post(config.token, (req, res) => {
     });
 });
 
+//--------------------------------Insérer Valeurs Capteurs dans la base---------------------------------------//
+app.post(config.add, async (req, res) => {
+    try {
 
+        const fakeData = [
+            data.water_network,
+            data.pump,
+            data.rain_water_consumption,
+            data.tap_water_consumption, 
+            data.soil_moisture_1,
+            data.soil_moisture_2,
+            data.soil_moisture_3,
+            data.watering,
+            data.misting,
+            data.indoor_air_humidity,
+            data.indoor_temperature,
+            data.outdoor_temperature,
+            data.open_window,
+            data.heating
+        ];
 
+        const sqlInsert = `
+            INSERT INTO EventsRegulation 
+            (water_network, pump, rain_water_consumption, tap_water_consumption, 
+            soil_moisture_1, soil_moisture_2, soil_moisture_3, watering, misting, 
+            indoor_air_humidity, indoor_temperature, outdoor_temperature, open_window, heating) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        const values = Object.values(fakeData);
+
+        await db.execute(sqlInsert, values);
+
+        res.status(200).json({ message: "Valeurs fictives insérées avec succès." });
+
+    } catch (error) {
+        res.status(500).json({ error: "Erreur lors de l'insertion des valeurs fictives." });
+    }
+});
+
+  
 
 // Démarrer le serveur
 app.listen(3001, () => {
