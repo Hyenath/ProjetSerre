@@ -1,5 +1,6 @@
 /back/node_modules
 /back/config.json
+/back/data.json
 /back/package-lock.json
 /back/package.json
 /back/phpmyadmin
