@@ -120,6 +120,8 @@ app.post(config.register, async (req, res) => {
 
         const hashedPassword = bcrypt.hashSync(password, 10);
 
+
+
         const sqlInsert = 'INSERT INTO UserData (username, lastname, firstname, mail, password) VALUES (?, ?, ?, ?, ?)';
         db.query(sqlInsert, [username, lastname, firstname, mail, hashedPassword], (err, result) => {
             if (err) {
