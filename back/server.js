@@ -139,7 +139,7 @@ app.post(config.register, async (req, res) => {
 
 //------------------------------------verif token---------------------------------------------//
 
-app.post(config.token, (req, res) => {
+app.post(config.verifytoken, (req, res) => {
     const authHeader = req.headers["authorization"];
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -153,7 +153,7 @@ app.post(config.token, (req, res) => {
             return res.status(401).json({ valid: false, message: "Token invalide" });
         }
 
-        const sql = 'SELECT id, prenom, nom, email FROM user WHERE id = ?';
+        const sql = 'SELECT id, lastname, firstname, mail FROM UserData WHERE id = ?';
         db.query(sql, [decoded.id], (dbErr, results) => {
             if (dbErr || results.length === 0) {
                 return res.status(401).json({ valid: false, message: "Utilisateur non trouvé" });
@@ -165,9 +165,9 @@ app.post(config.token, (req, res) => {
                 valid: true,
                 user: {
                     id: user.id,
-                    firstName: user.prenom,
-                    lastName: user.nom,
-                    email: user.email
+                    lastName: user.lastname,
+                    firstName: user.firstname,
+                    mail: user.mail
                 }
             });
         });
