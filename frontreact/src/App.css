@@ -1,0 +1,54 @@
+/* Style de la page */
+.js-fullheight {
+  height: 100%;
+  background-size: cover;
+  background-position: center center;
+}
+
+.login-wrap {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.form-control {
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+
+.field-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.checkbox-wrap {
+  display: inline-block;
+}
+
+.checkbox-primary input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-primary .checkmark {
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.checkbox-primary input[type="checkbox"]:checked + .checkmark {
+  background-color: #3498db;
+  border-color: #3498db;
+}
