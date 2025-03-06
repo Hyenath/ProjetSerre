@@ -205,12 +205,17 @@ app.post(config.add, async (req, res) => {
 
         const values = Object.values(fakeData);
 
-        await db.execute(sqlInsert, values);
-
-        res.status(200).json({ message: "Valeurs fictives insérées avec succès." });
+        db.query(sqlInsert, values, (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: "Erreur lors de l'insertion des valeurs fictives." });
+            }
+            res.status(200).json({ message: "Valeurs fictives insérées avec succès." });
+        });
 
     } catch (error) {
-        res.status(500).json({ error: "Erreur lors de l'insertion des valeurs fictives." });
+        console.error(error);
+        res.status(500).json({ error: "Erreur lors de l'insertion." });
     }
 });
 

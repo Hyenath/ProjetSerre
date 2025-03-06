@@ -37,6 +37,8 @@ import { BsCreditCardFill } from "react-icons/bs";
 import { IoStatsChart } from "react-icons/io5";
 import { IoHome } from "react-icons/io5";
 
+
+
 const routes = [
   {
     type: "collapse",
@@ -93,6 +95,9 @@ const routes = [
     component: SignUp,
     noCollapse: true,
   },
+    { route: "/authentication/sign-in", component: SignIn },
+    { route: "/dashboard", component: Dashboard, protected: true },
+  
 ];
 
 export default routes;

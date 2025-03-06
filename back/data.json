@@ -1,5 +1,5 @@
 {
-    "water_network" : "'rain'",
+    "water_network" : "rain",
     "pump" : "1",
     "rain_water_consumption" : "12.5",
     "tap_water_consumption" : "8.2", 
