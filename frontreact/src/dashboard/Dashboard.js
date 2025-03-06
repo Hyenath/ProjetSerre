@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "./navbar/Navbar";
+import Footer from "./footer/Footer";
+import  "./css/Style.css";
 
 const Dashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -7,9 +10,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fonction pour vérifier le token
+    // Vérification du token d'authentification
     const checkAuth = async () => {
-      const token = localStorage.getItem("token"); // On récupère le token dans le localStorage
+      const token = localStorage.getItem("token");
 
       if (!token) {
         setErrorMessage("Token manquant. Veuillez vous connecter.");
@@ -21,7 +24,7 @@ const Dashboard = () => {
         const response = await fetch("http://192.168.65.74:3001/check-token", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${token}`, // Envoie le token dans l'en-tête de la requête
+            "Authorization": `Bearer ${token}`,
           },
         });
 
@@ -29,7 +32,7 @@ const Dashboard = () => {
 
         if (!response.ok || !data.valid) {
           setErrorMessage(data.message || "Token invalide ou expiré");
-          localStorage.removeItem("token"); // Supprime le token si invalide
+          localStorage.removeItem("token");
           navigate("/"); // Redirige vers la page de connexion
           return;
         }
@@ -43,18 +46,23 @@ const Dashboard = () => {
       }
     };
 
-    checkAuth(); // Appel de la fonction au chargement de la page
+    checkAuth();
   }, [navigate]);
 
-  // Si l'utilisateur n'est pas authentifié, on ne montre pas le dashboard
   if (!isAuthenticated) {
     return <div>{errorMessage && <p>{errorMessage}</p>}</div>;
   }
 
   return (
     <div>
-      <h1>Bienvenue sur le Dashboard !</h1>
-      <p>Contenu sécurisé accessible uniquement si authentifié.</p>
+      <Navbar />
+      <main>
+        <div className="container">
+          <h1>Bienvenue sur le Dashboard !</h1>
+          <p>Contenu sécurisé accessible uniquement si authentifié.</p>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 };

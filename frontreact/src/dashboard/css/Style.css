@@ -1,0 +1,54 @@
+/* Navbar */
+.navbar {
+    background-color: #333;
+    padding: 10px;
+    color: white;
+  }
+  
+  .navbar h1 {
+    display: inline-block;
+    margin: 0;
+  }
+  
+  .navbar ul {
+    list-style-type: none;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .navbar ul li {
+    display: inline;
+    margin-right: 20px;
+  }
+  
+  .navbar ul li a {
+    color: white;
+    text-decoration: none;
+  }
+  
+  .navbar ul li a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Page principale */
+  main {
+    padding: 20px;
+  }
+  
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  /* Footer */
+  .footer {
+    background-color: #333;
+    padding: 10px;
+    color: white;
+    text-align: center;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+  }
+  
