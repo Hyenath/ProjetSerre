@@ -1,54 +1,65 @@
-/* Navbar */
-.navbar {
-    background-color: #333;
-    padding: 10px;
-    color: white;
+/* Global */
+body {
+  margin: 0;
+  font-family: "Arial", sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+/* Conteneur principal */
+.container {
+  margin-left: 270px; /* Ajuste pour la sidebar */
+  padding: 40px;
+}
+
+/* Dashboard */
+main {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+h1 {
+  font-size: 28px;
+  color: #1f1f1f;
+  text-align: center;
+}
+
+p {
+  font-size: 18px;
+  text-align: center;
+  color: #555;
+}
+
+/* Animation d'entrée */
+.container {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.chart-container {
+  width: 90%;
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  background: #1f1f1f;
+  box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.chart-container:hover {
+  transform: scale(1.02);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-  
-  .navbar h1 {
-    display: inline-block;
-    margin: 0;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .navbar ul {
-    list-style-type: none;
-    display: inline-block;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .navbar ul li {
-    display: inline;
-    margin-right: 20px;
-  }
-  
-  .navbar ul li a {
-    color: white;
-    text-decoration: none;
-  }
-  
-  .navbar ul li a:hover {
-    text-decoration: underline;
-  }
-  
-  /* Page principale */
-  main {
-    padding: 20px;
-  }
-  
-  .container {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-  
-  /* Footer */
-  .footer {
-    background-color: #333;
-    padding: 10px;
-    color: white;
-    text-align: center;
-    position: fixed;
-    width: 100%;
-    bottom: 0;
-  }
-  
+}
