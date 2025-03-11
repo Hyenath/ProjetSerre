@@ -34,6 +34,27 @@
   -webkit-box-sizing: border-box;
   box-sizing: border-box; }
 
+/*style bouton utilisaeur en haut à droite */
+  .user-access {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+  }
+  
+  .user-access .btn {
+    padding: 10px 15px;
+    font-size: 14px;
+    background-color: #db8484;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .user-access .btn:hover {
+    background-color: #db8499;
+  }
+  
 
 /* Style des points brillants */
 .sparkle {
@@ -5787,11 +5808,22 @@ button.bg-dark:focus {
   -ms-flex-pack: end !important;
   justify-content: flex-end !important; }
 
-.justify-content-center {
-  -webkit-box-pack: center !important;
-  -ms-flex-pack: center !important;
-  justify-content: center !important; }
-
+  .justify-content-center {
+    position: absolute; /* ou fixed si tu veux que l'élément reste fixe dans la fenêtre */
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -webkit-box-pack: center !important;
+    -ms-flex-pack: center !important;
+    justify-content: center !important;
+    
+    /* Agrandir la taille de la div */
+    width: 80%; /* Par exemple, 80% de la largeur de la fenêtre */
+    height: 60%; /* Par exemple, 60% de la hauteur de la fenêtre */
+    max-width: 1200px; /* Limite la largeur maximale si nécessaire */
+    max-height: 800px; /* Limite la hauteur maximale si nécessaire */
+  }
+  
 .justify-content-between {
   -webkit-box-pack: justify !important;
   -ms-flex-pack: justify !important;

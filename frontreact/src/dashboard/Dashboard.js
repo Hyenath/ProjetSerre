@@ -16,12 +16,6 @@ const Dashboard = () => {
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
 
-      if (!token) {
-        setErrorMessage("Token manquant. Veuillez vous connecter.");
-        navigate("/");
-        return;
-      }
-
       try {
         const response = await fetch("http://192.168.65.74:3001/check-token", {
           method: "POST",
@@ -33,15 +27,12 @@ const Dashboard = () => {
         if (!response.ok || !data.valid) {
           setErrorMessage(data.message || "Token invalide ou expiré");
           localStorage.removeItem("token");
-          navigate("/");
-          return;
         }
 
         setIsAuthenticated(true);
       } catch (error) {
         console.error("Erreur de vérification du token:", error);
         setErrorMessage("Erreur de connexion au serveur.");
-        navigate("/");
       }
     };
 
@@ -120,7 +111,7 @@ const Dashboard = () => {
             <Legend />
             </PieChart>
           </div>
-          
+
       </div>
       </main>
       <Footer />

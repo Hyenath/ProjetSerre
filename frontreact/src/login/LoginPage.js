@@ -14,7 +14,7 @@ const LoginPage = () => {
   useEffect(() => {
     const generatePoints = () => {
       const newPoints = [];
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 10; i++) {
         const x = Math.random() * 50;  // Position horizontale (en pourcentage)
         const y = Math.random() * 50;  // Position verticale (en pourcentage)
         newPoints.push({ x, y });
@@ -73,11 +73,17 @@ const LoginPage = () => {
 
   return (
     <div style={{ backgroundImage: 'url(images/bg.jpg)', height: '100vh' }} className="js-fullheight">
+      
+      <div className="user-access">
+        <button className="btn btn-secondary" onClick={() => navigate("/dashboard")}>Accéder en tant qu'utilisateur</button>
+      </div>
+
       <section className="ftco-section">
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-6 col-lg-4">
               <div className="login-wrap p-0">
+
                 <h3 className="mb-4 text-center">Login</h3>
                 {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
                 <form onSubmit={handleSubmit} id="login-form" className="signin-form">

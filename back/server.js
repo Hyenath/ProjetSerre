@@ -8,6 +8,7 @@ const app = express();
 
 const config = require('./config.json');
 const data = require('./data.json');
+const RegParam = require('./RegParam.json');
 
 //------------------------------------------------MISE EN PLACE DE L'API---------------------------------------------------------//
 
@@ -217,11 +218,46 @@ app.post(config.add, async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Erreur lors de l'insertion." });
+        res.status(500).json({
+            success: "flase",
+            errormessage: "Erreur lors de l'insertion." 
+        });
     }
 });
 
-  
+
+//--------------------------------Récupérer les paramètres de régulation---------------------------------------//
+app.get(config.getRegParam, async (req, res) => {
+    try {
+        const sqlSelect = `
+            SELECT
+                threshold_low_frozen_water,
+                threshold_low_soil_moisture,
+                threshold_high_soil_moisture,
+                threshold_low_air_humidity,
+                threshold_high_air_humidity,
+                threshold_low_temperature,
+                threshold_high_temperature
+            FROM RegulationParameters
+        `;
+
+        db.query(sqlSelect, (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: "Erreur lors de la récupération des paramètres." });
+            }
+            res.status(200).json(result); // Renvoie les valeurs récupérées
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false, // Corrigé "flase" en "false"
+            errormessage: "Erreur lors de la récupération."
+        });
+    }
+});
+
 
 // Démarrer le serveur
 app.listen(3001, () => {
