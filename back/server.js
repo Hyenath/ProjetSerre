@@ -1,6 +1,8 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const mysql = require('mysql2');
+const fs = require('fs');
+const path = require('path');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -180,7 +182,6 @@ app.post(config.verifytoken, (req, res) => {
 //--------------------------------Insérer Valeurs Capteurs dans la base---------------------------------------//
 app.post(config.add, async (req, res) => {
     try {
-
         const fakeData = [
             data.water_network,
             data.pump,
@@ -213,13 +214,16 @@ app.post(config.add, async (req, res) => {
                 console.error(err);
                 return res.status(500).json({ error: "Erreur lors de l'insertion des valeurs fictives." });
             }
-            res.status(200).json({ message: "Valeurs fictives insérées avec succès." });
+
+            console.log("Valeurs fictives insérées dans la base de données.");
+
+            return res.status(200).json({values});
         });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({
-            success: "flase",
+        return res.status(500).json({
+            success: false,
             errormessage: "Erreur lors de l'insertion." 
         });
     }
@@ -240,19 +244,33 @@ app.get(config.getRegParam, async (req, res) => {
                 threshold_high_temperature
             FROM RegulationParameters
         `;
+        
 
         db.query(sqlSelect, (err, result) => {
             if (err) {
-                console.error(err);
+                console.error("Erreur SQL :", err);
                 return res.status(500).json({ error: "Erreur lors de la récupération des paramètres." });
             }
-            res.status(200).json(result); // Renvoie les valeurs récupérées
+
+            // Définir le chemin du fichier JSON
+            const filePath = path.join(__dirname, 'RegParam.json');
+
+            try {
+                // Écrire les résultats dans le fichier JSON
+                fs.writeFileSync(filePath, JSON.stringify(result, null, 4), 'utf-8');
+                console.log("Données enregistrées dans le json");
+            } catch (writeErr) {
+                console.error("Erreur d'écriture dans le fichier JSON :", writeErr);
+            }
+
+            // Envoyer la réponse au client
+            res.status(200).json(result);
         });
 
     } catch (error) {
-        console.error(error);
+        console.error("Erreur :", error);
         res.status(500).json({
-            success: false, // Corrigé "flase" en "false"
+            success: false,
             errormessage: "Erreur lors de la récupération."
         });
     }
