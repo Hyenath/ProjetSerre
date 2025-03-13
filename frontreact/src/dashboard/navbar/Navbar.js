@@ -5,6 +5,7 @@ import "./Navbar.css"; // Import du fichier CSS
 const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isNavbarVisible, setIsNavbarVisible] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,14 +49,29 @@ const Navbar = () => {
     navigate("/");
   };
 
+    // ✅ Détection de la souris dans le coin supérieur gauche
+    useEffect(() => {
+      const handleMouseMove = (e) => {
+        if (e.clientX < 10) {
+          setIsNavbarVisible(true);
+        }
+      };
+  
+      document.addEventListener("mousemove", handleMouseMove);
+      return () => document.removeEventListener("mousemove", handleMouseMove);
+    }, []);
+
   return (
-    <nav className="sidebar">
+    <nav
+    className={`sidebar ${isNavbarVisible ? "visible" : "hidden"}`}
+    onMouseLeave={() => setIsNavbarVisible(false)} // Cache la navbar en quittant
+  >
       <div className="sidebar-header">
-        <h1>Tableau de Bord</h1>
+        <h1>Serre de la Providence</h1>
       </div>
       <ul className="sidebar-menu">
         <li><Link to="/dashboard">🏠 Accueil</Link></li>
-        {isAuthenticated && <li><Link to="/profile">👤 Créer un utilisateur</Link></li>}
+        {isAuthenticated && <li><Link to="/new-user">👤 Créer un utilisateur</Link></li>}
         <li><Link to="/settings">⚙️ Paramètres</Link></li>
 
         {/* Si l'utilisateur est connecté → bouton Déconnexion | Sinon → Connexion */}

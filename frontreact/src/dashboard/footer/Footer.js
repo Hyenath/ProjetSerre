@@ -4,7 +4,7 @@ import "./Footer.css";  // Importation du fichier CSS pour les styles personnali
 const Footer = () => {
   return (
     <footer className="footer">
-      <div className="container">
+      <div className="container_foot">
         <p>Site créé par Florent Germain, Nathan Dubaille, Stanislas Legrand et Kévin Lemaire</p>
       </div>
     </footer>

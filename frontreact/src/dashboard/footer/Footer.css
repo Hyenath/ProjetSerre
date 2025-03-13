@@ -1,6 +1,6 @@
 /* Footer */
 .footer {
-    background-color: #1f1f1f; /* Fond sombre */
+    background-color: rgba(31, 31, 31, 0.9); /* Fond sombre */
     color: #f1f1f1; /* Texte clair */
     text-align: center; /* Centrer le texte */
     padding: 40px 0; /* Espacement autour du texte */
@@ -10,7 +10,7 @@
     box-shadow: 0px -5px 15px rgba(0, 0, 0, 0.1); /* Ombre subtile pour un effet de profondeur */
   }
   
-  .footer .container {
+  .footer .container_foot {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;

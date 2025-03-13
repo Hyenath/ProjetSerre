@@ -54,7 +54,7 @@ const LoginPage = () => {
         if (data.message === 'Connexion réussie') {
           // Stockage du token dans localStorage
           localStorage.setItem('token', data.token); // Stocke le token dans le localStorage
-          alert('Connexion réussie');
+
           navigate("/dashboard"); // Redirection vers Dashboard
         } else {
           setErrorMessage(data.message);
@@ -79,7 +79,6 @@ const LoginPage = () => {
       </div>
 
       <section className="ftco-section">
-        <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-6 col-lg-4">
               <div className="login-wrap p-0">
@@ -123,7 +122,6 @@ const LoginPage = () => {
               </div>
             </div>
           </div>
-        </div>
       </section>
 
       {/* Générer des points brillants à des positions spécifiques */}

@@ -1,0 +1,68 @@
+
+.body_new_user {
+    background-image: url("new_user_font.jfif");
+    background-size: cover;  /* Pour que l'image couvre toute la surface du body */
+    background-position: center;  /* Centrer l'image */
+    background-attachment: fixed;  /* Garder l'image fixe lors du défilement */
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;  /* Choisir une police de caractères */
+}
+
+/* Container principal pour centrer le formulaire */
+.container_new_user {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: rgba(249, 249, 249, 0.75);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Formulaire de saisie */
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  /* Styles des champs de formulaire */
+  .form-input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+  }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+
+  /* Style du bouton de soumission */
+  .submit-btn {
+    padding: 12px;
+    font-size: 16px;
+    color: white;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .submit-btn:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Message de confirmation ou d'erreur */
+  .message {
+    margin-top: 20px;
+    text-align: center;
+    color: #d9534f;
+  }
+  
+  .message.success {
+    color: #5bc0de;
+  }  

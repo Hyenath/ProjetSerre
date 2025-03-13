@@ -65,7 +65,7 @@ const Dashboard = () => {
       <Navbar />
       <main>
         <div className="container">
-          <h1>Bienvenue sur le Dashboard !</h1>
+          <h1>Bienvenue sur le tableau de bord de la serre</h1>
           <p>Voici un aperçu des statistiques de fréquentation.</p>
 
           {/* Graphique amélioré */}

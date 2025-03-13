@@ -36,8 +36,8 @@ db.connect(err => {
 //-------------------------------LIMITEUR DE REQUETE ET CONNEXION-----------------------------------------//
 
 const globalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 50, // Limite chaque IP à 50 requêtes par windowMs
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 100, // Limite chaque IP à 50 requêtes par windowMs
     message: 'Trop de requêtes, veuillez réessayer plus tard.',
 });
 
@@ -146,6 +146,8 @@ app.post(config.register, async (req, res) => {
 
 app.post(config.verifytoken, (req, res) => {
     const authHeader = req.headers["authorization"];
+    console.log(globalLimiter);
+    
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({ valid: false, message: "Token manquant ou mal formaté" });
@@ -214,10 +216,13 @@ app.post(config.add, async (req, res) => {
                 console.error(err);
                 return res.status(500).json({ error: "Erreur lors de l'insertion des valeurs fictives." });
             }
-
             console.log("Valeurs fictives insérées dans la base de données.");
+            
 
-            return res.status(200).json({values});
+            return res.status(200).json({
+                success: true,
+                values
+            });
         });
 
     } catch (error) {
@@ -264,7 +269,10 @@ app.get(config.getRegParam, async (req, res) => {
             }
 
             // Envoyer la réponse au client
-            res.status(200).json(result);
+            res.status(200).json({
+                success: true,
+                result
+            });
         });
 
     } catch (error) {
@@ -275,6 +283,56 @@ app.get(config.getRegParam, async (req, res) => {
         });
     }
 });
+
+//--------------------------------Modifier les paramètres de régulation---------------------------------------//
+app.get(config.updateRegParam, async (req, res) => {
+    try {
+        const sqlSelect = `
+            SELECT
+                threshold_low_frozen_water,
+                threshold_low_soil_moisture,
+                threshold_high_soil_moisture,
+                threshold_low_air_humidity,
+                threshold_high_air_humidity,
+                threshold_low_temperature,
+                threshold_high_temperature
+            FROM RegulationParameters
+        `;
+        
+
+        db.query(sqlSelect, (err, result) => {
+            if (err) {
+                console.error("Erreur SQL :", err);
+                return res.status(500).json({ error: "Erreur lors de la récupération des paramètres." });
+            }
+
+            // Définir le chemin du fichier JSON
+            const filePath = path.join(__dirname, 'RegParam.json');
+
+            try {
+                // Écrire les résultats dans le fichier JSON
+                fs.writeFileSync(filePath, JSON.stringify(result, null, 4), 'utf-8');
+                console.log("Données enregistrées dans le json");
+            } catch (writeErr) {
+                console.error("Erreur d'écriture dans le fichier JSON :", writeErr);
+            }
+
+            // Envoyer la réponse au client
+            res.status(200).json({
+                success: true,
+                result
+            });
+        });
+
+    } catch (error) {
+        console.error("Erreur :", error);
+        res.status(500).json({
+            success: false,
+            errormessage: "Erreur lors de la récupération."
+        });
+    }
+});
+
 
 
 // Démarrer le serveur
