@@ -146,7 +146,7 @@ app.post(config.register, async (req, res) => {
 
 app.post(config.verifytoken, (req, res) => {
     const authHeader = req.headers["authorization"];
-    console.log(globalLimiter);
+    //console.log(globalLimiter);
     
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -255,6 +255,15 @@ app.get(config.getRegParam, async (req, res) => {
             if (err) {
                 console.error("Erreur SQL :", err);
                 return res.status(500).json({ error: "Erreur lors de la récupération des paramètres." });
+            }
+
+            // Vérifier que chaque valeur est bien un entier
+            const isValid = result.every(row =>
+            Object.values(row).every(value => Number.isInteger(value))
+            );
+
+            if (!isValid) {
+                return res.status(400).json({ error: "Les paramètres récupérés ne sont pas tous des entiers valides." });
             }
 
             // Définir le chemin du fichier JSON
