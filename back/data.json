@@ -1,8 +1,8 @@
 {
     "water_network" : "rain",
     "pump" : "1",
-    "rain_water_consumption" : "12.5",
-    "tap_water_consumption" : "8.2", 
+    "rain_water_consumption" : "12",
+    "tap_water_consumption" : "8", 
     "soil_moisture_1" : "45.3",
     "soil_moisture_2" : "52.7",
     "soil_moisture_3" : "47.8",
