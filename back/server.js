@@ -1,8 +1,10 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const mysql = require('mysql2');
+//Gestion des fichiers
 const fs = require('fs');
 const path = require('path');
+//
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -180,27 +182,78 @@ app.post(config.verifytoken, (req, res) => {
         });
     });
 });
-
 //--------------------------------Insérer Valeurs Capteurs dans la base---------------------------------------//
 app.post(config.add, async (req, res) => {
     try {
-        const fakeData = [
-            data.water_network,
-            data.pump,
-            data.rain_water_consumption,
-            data.tap_water_consumption, 
-            data.soil_moisture_1,
-            data.soil_moisture_2,
-            data.soil_moisture_3,
-            data.watering,
-            data.misting,
-            data.indoor_air_humidity,
-            data.indoor_temperature,
-            data.outdoor_temperature,
-            data.open_window,
-            data.heating
+        // Lire les données depuis le fichier JSON
+        const filePath = path.join(__dirname, "sensorData.json"); // Définir le chemin du fichier JSON
+        const rawData = fs.readFileSync(filePath, "utf-8"); // Lire le fichier en version lisible (UTF-8)
+        const data = JSON.parse(rawData); // Parser les données JSON dans un objet JavaScript
+
+        // Définition des types attendus pour chaque valeur
+        const expectedTypes = [
+            "enum",       // water_network
+            "boolean",    // pump
+            "int",        // rain_water_consumption
+            "int",        // tap_water_consumption
+            "float",      // soil_moisture_1
+            "float",      // soil_moisture_2
+            "float",      // soil_moisture_3
+            "boolean",    // watering
+            "boolean",    // misting
+            "float",      // indoor_air_humidity
+            "float",      // indoor_temperature
+            "float",      // outdoor_temperature
+            "boolean",    // open_window
+            "boolean"     // heating
         ];
 
+        // Données récupérées depuis le JSON
+        const fakeData = [
+            data.water_network,
+            data.pump,          
+            data.rain_water_consumption, 
+            data.tap_water_consumption,  
+            data.soil_moisture_1,       
+            data.soil_moisture_2,       
+            data.soil_moisture_3,       
+            data.watering,              
+            data.misting,               
+            data.indoor_air_humidity,   
+            data.indoor_temperature,   
+            data.outdoor_temperature,  
+            data.heating              
+        ];
+
+        // Vérification des types de données
+        const isValid = fakeData.every((value, index) => {
+            const expectedType = expectedTypes[index];
+
+            if (expectedType === "boolean") {
+                return typeof value === "boolean";
+            }
+
+            if (expectedType === "float") {
+                return typeof value === "number" && !isNaN(value);
+            }
+
+            if (expectedType === "int") {
+                return Number.isInteger(value);
+            }
+
+            if (expectedType === "enum") {
+                return value === "rain" || value === "tap"; // Enum avec les valeurs possibles "rain" et "tap"
+            }
+
+            return false; // Si un type inattendu est rencontré
+        });
+
+        // Si les types ne sont pas valides, retourner une erreur
+        if (!isValid) {
+            return res.status(400).json({ error: "Les données du fichier JSON ne respectent pas les types attendus." });
+        }
+
+        // SQL d'insertion dans la base de données
         const sqlInsert = `
             INSERT INTO EventsRegulation 
             (water_network, pump, rain_water_consumption, tap_water_consumption, 
@@ -209,16 +262,17 @@ app.post(config.add, async (req, res) => {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
-        const values = Object.values(fakeData);
+        const values = Object.values(fakeData); // Convertir les données dans un tableau pour l'insertion SQL
 
+        // Exécuter la requête d'insertion dans la base de données
         db.query(sqlInsert, values, (err, result) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ error: "Erreur lors de l'insertion des valeurs fictives." });
             }
             console.log("Valeurs fictives insérées dans la base de données.");
-            
 
+            // Retourner une réponse de succès avec les valeurs insérées
             return res.status(200).json({
                 success: true,
                 values
@@ -227,12 +281,14 @@ app.post(config.add, async (req, res) => {
 
     } catch (error) {
         console.error(error);
+        // Retourner une erreur interne si une exception est lancée
         return res.status(500).json({
             success: false,
             errormessage: "Erreur lors de l'insertion." 
         });
     }
 });
+
 
 
 //--------------------------------Récupérer les paramètres de régulation---------------------------------------//
