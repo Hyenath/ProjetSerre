@@ -1,3 +1,5 @@
+const http = require('http');
+
 class TCW241 {
     constructor(ip, port) {
         this.ip = ip;
@@ -30,7 +32,6 @@ class TCW241 {
     readIndoorMoisture() {}
     
     async readSoilMoisture(sensorId) {
-        const http = require('http');
         const options = {
             hostname: this.ip,
             port: this.port,
@@ -83,7 +84,36 @@ class TCW241 {
     }
     
     setHeaterState(enabled) {}
-    setWindowState(opened) {}
+
+    async setWindowState(opened) {
+        const parameter = opened ? "rof":"ron";
+        const options = {
+            hostname: this.ip,
+            port: this.port,
+            path: `/status.json?${parameter}=8`,
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + Buffer.from('admin:admin').toString('base64')
+            }
+        };
+        
+        return new Promise((resolve, reject) => {
+            const request = http.request(options, (resp) => {
+                if (resp.statusCode === 200) {
+                    resolve(true);
+                } else {
+                    reject(`Erreur: Code ${resp.statusCode}`);
+                }
+            });
+            
+            request.on("error", (err) => {
+                reject("Erreur serveur: " + err.message);
+            });
+            
+            request.end();
+        });
+    }
+
     enableMisting(enabled) {}
     enableWatering(enabled) {}
 }
