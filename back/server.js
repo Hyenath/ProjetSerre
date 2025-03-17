@@ -19,7 +19,7 @@ const RegParam = require('./RegParam.json');
 app.use(cors());
 app.use(express.json());
 
-const db = mysql.createConnection({
+const db = mysql.createConnection({ //db => database
     host: config.host,
     user: config.user,
     password: config.password,
@@ -182,75 +182,64 @@ app.post(config.verifytoken, (req, res) => {
         });
     });
 });
+
 //--------------------------------Insérer Valeurs Capteurs dans la base---------------------------------------//
 app.post(config.add, async (req, res) => {
     try {
-        // Lire les données depuis le fichier JSON
-        const filePath = path.join(__dirname, "sensorData.json"); // Définir le chemin du fichier JSON
-        const rawData = fs.readFileSync(filePath, "utf-8"); // Lire le fichier en version lisible (UTF-8)
-        const data = JSON.parse(rawData); // Parser les données JSON dans un objet JavaScript
-
-        // Définition des types attendus pour chaque valeur
-        const expectedTypes = [
-            "enum",       // water_network
-            "boolean",    // pump
-            "int",        // rain_water_consumption
-            "int",        // tap_water_consumption
-            "float",      // soil_moisture_1
-            "float",      // soil_moisture_2
-            "float",      // soil_moisture_3
-            "boolean",    // watering
-            "boolean",    // misting
-            "float",      // indoor_air_humidity
-            "float",      // indoor_temperature
-            "float",      // outdoor_temperature
-            "boolean",    // open_window
-            "boolean"     // heating
-        ];
-
         // Données récupérées depuis le JSON
         const fakeData = [
             data.water_network,
-            data.pump,          
-            data.rain_water_consumption, 
-            data.tap_water_consumption,  
-            data.soil_moisture_1,       
-            data.soil_moisture_2,       
-            data.soil_moisture_3,       
-            data.watering,              
-            data.misting,               
-            data.indoor_air_humidity,   
-            data.indoor_temperature,   
-            data.outdoor_temperature,  
-            data.heating              
+            data.pump === "1",
+            parseInt(data.rain_water_consumption, 10),
+            parseInt(data.tap_water_consumption, 10),
+            parseFloat(data.soil_moisture_1),
+            parseFloat(data.soil_moisture_2),
+            parseFloat(data.soil_moisture_3),
+            data.watering === "1",
+            data.misting === "1",
+            parseFloat(data.indoor_air_humidity),
+            parseFloat(data.indoor_temperature),
+            parseFloat(data.outdoor_temperature),
+            data.open_window === "1",
+            data.heating === "1"
         ];
+        
 
-        // Vérification des types de données
-        const isValid = fakeData.every((value, index) => {
-            const expectedType = expectedTypes[index];
+        // Fonction de vérification des types
+        const checkDataTypes = (data) => {
+            const expectedTypes = [
+                'string',  // water_network
+                'boolean', // pump
+                'number',  // rain_water_consumption
+                'number',  // tap_water_consumption 
+                'number',  // soil_moisture_1
+                'number',  // soil_moisture_2
+                'number',  // soil_moisture_3
+                'boolean', // watering
+                'boolean', // misting
+                'number',  // indoor_air_humidity
+                'number',  // indoor_temperature
+                'number',  // outdoor_temperature
+                'boolean', // open_window
+                'boolean'  // heating
+            ];
 
-            if (expectedType === "boolean") {
-                return typeof value === "boolean";
+            // Vérification des types de données
+            for (let i = 0; i < data.length; i++) {
+                // Vérification du type des données par rapport aux types attendus
+                if (typeof data[i] !== expectedTypes[i]) {
+                    return false; // Si un type ne correspond pas, retourner false
+                }
             }
+            return true; // Si tous les types sont valides, retourner true
+        };
 
-            if (expectedType === "float") {
-                return typeof value === "number" && !isNaN(value);
-            }
-
-            if (expectedType === "int") {
-                return Number.isInteger(value);
-            }
-
-            if (expectedType === "enum") {
-                return value === "rain" || value === "tap"; // Enum avec les valeurs possibles "rain" et "tap"
-            }
-
-            return false; // Si un type inattendu est rencontré
-        });
-
-        // Si les types ne sont pas valides, retourner une erreur
-        if (!isValid) {
-            return res.status(400).json({ error: "Les données du fichier JSON ne respectent pas les types attendus." });
+        // Vérifier les types des données
+        if (!checkDataTypes(fakeData)) {
+            return res.status(400).json({
+                success: false,
+                message: "Les types de données ne sont pas valides."
+            });
         }
 
         // SQL d'insertion dans la base de données
