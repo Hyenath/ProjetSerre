@@ -19,7 +19,7 @@ const RegParam = require('./RegParam.json');
 const RegParamSave = require('./RegParamSave.json');
 const RegParamUpdate = require('./RegParamUpdate.json');
 
-//Pour lancer les serveurs, se référer au package.json du frontreact
+//Pour lancer les serveurs, se référer au package.json du frontreact//
 
 
 //------------------------------------------------MISE EN PLACE DE L'API---------------------------------------------------------//
