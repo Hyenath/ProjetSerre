@@ -4,12 +4,13 @@ const http = require('http');
 const bodyParser = require('body-parser');
 const app = express();
 
-const TCW241 = require('./class/TCW241');
-
 app.use(bodyParser.json())
 app.use(cors());
 
+const TCW241 = require('./class/TCW241');
+const MainManager = require('./class/MainManager');
 const tcw = new TCW241('192.168.65.252', 80);
+const mainManager = new MainManager();
 
 // Route pour récupérer les données de la carte TWC241 envoyée chaque minute
 app.post('/route', (req,res) => {
@@ -23,8 +24,8 @@ app.post('/vasistas', async (req, res) => {
     try {
         // Récupération de l'état actuel du vasistas
         const options = {
-            hostname: "192.168.65.252",
-            port: "80",
+            hostname: tcw.ip,
+            port: tcw.port,
             path: '/status.json',
             method: 'GET',
             headers: {
@@ -50,9 +51,8 @@ app.post('/vasistas', async (req, res) => {
                         const jsonData = JSON.parse(cleanData);
                         const relayState = jsonData.Monitor.R.R4.value;
 
-                        console.log("État du relais:", relayState); // Pour vérifier l'état
+                        console.log("État du relais:", relayState);
 
-                        // Conversion en booléen
                         resolve(relayState === "ON");
                     } catch (error) {
                         reject("Erreur de parsing JSON: " + error);
@@ -66,13 +66,9 @@ app.post('/vasistas', async (req, res) => {
 
             request.end();
         });
-
-        // Forcer l'attente de la fonction setWindowState, même pour la fermeture
-        console.log(isRelayOn)
+        //Envoi de la commande pour ouvrir ou fermer le vasistas
         await tcw.setWindowState(isRelayOn);
-
         return res.status(200).json({ message: `Vasistas ${isRelayOn ? "ouvert" : "fermé"}` });
-
     } catch (error) {
         console.error("Erreur:", error);
         res.status(500).json({ message: "Erreur lors de l'activation du vasistas" });
