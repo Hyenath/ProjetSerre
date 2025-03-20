@@ -19,7 +19,7 @@ const RegParam = require('./RegParam.json');
 const RegParamSave = require('./RegParamSave.json');
 const RegParamUpdate = require('./RegParamUpdate.json');
 
-//Pour lancer les serveurs, se référer au package.json du frontreact
+//Pour lancer les serveurs, se référer au package.json du frontreact//
 
 
 //------------------------------------------------MISE EN PLACE DE L'API---------------------------------------------------------//
@@ -364,6 +364,7 @@ app.put(config.updateRegParam, async (req, res) => {
             parseInt(RegParamUpdate.threshold_high_temperature, 10)
         ];
         
+        
         // Fonction de vérification des types
         const checkDataTypes = (data) => {
             const expectedTypes = [
@@ -423,7 +424,7 @@ app.put(config.updateRegParam, async (req, res) => {
         });
 
         fs.writeFileSync(SaveFilePath, '', 'utf-8'); // Effacer le contenu actuel de la dernière sauvegarde
-        fs.writeFileSync(SaveFilePath, mainFilePath, 'utf-8'); // Ajouter une nouvelle sauvegarde des données du mainFilePath (RegParam.json)
+        fs.writeFileSync(SaveFilePath, fs.readFileSync(mainFilePath, 'utf-8'), 'utf-8');// Ajouter une nouvelle sauvegarde des données du mainFilePath (RegParam.json)
 
         // Démarrer un timer de 15 minutes (900000 ms)
         setTimeout(() => {
