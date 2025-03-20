@@ -16,6 +16,19 @@ const mainManager = new MainManager();
 app.post('/route', (req,res) => {
     const data = req.body;
     console.table(data);
+/*
+    try {
+        const cleanData = data.trim().replace(/^\uFEFF/, '');
+        const jsonData = JSON.parse(cleanData);
+        let indoorTemperature;
+
+        // Récupération de la température intérieure
+        indoorTemperature = jsonData.??
+        if(indoorTemperature =< 1) mainManager.sendMailAlert("La température intérieure est inférieure à 1°C");
+    } catch (error) {
+        console.log("Erreur de parsing JSON: " + error);
+    }
+*/
     return res.status(200).json({ message : 'ok'});
 })
 
@@ -94,9 +107,7 @@ app.get('/getHumidite', async (req, res) => {
 // Routes de test du serveur POST et GET
 app.post('/testPost', (req, res) => {
     const {data} = req.body;
-    
     console.log(data);
-    
     return res.status(200).json({ success : true })
 })
 
