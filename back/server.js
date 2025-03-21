@@ -354,92 +354,104 @@ app.put(config.updateRegParam, async (req, res) => {
         const SaveFilePath = path.join(__dirname, 'RegParamSave.json');
         const UpdateFilePath = path.join(__dirname, 'RegParamUpdate.json');
 
-        const Data = [
-            parseInt(RegParamUpdate.threshold_low_frozen_water, 10),
-            parseInt(RegParamUpdate.threshold_low_soil_moisture, 10),
-            parseInt(RegParamUpdate.threshold_high_soil_moisture, 10),
-            parseInt(RegParamUpdate.threshold_low_air_humidity, 10),    
-            parseInt(RegParamUpdate.threshold_high_air_humidity, 10),
-            parseInt(RegParamUpdate.threshold_low_temperature, 10),
-            parseInt(RegParamUpdate.threshold_high_temperature, 10)
-        ];
-        
-        
-        // Fonction de vérification des types
-        const checkDataTypes = (data) => {
-            const expectedTypes = [
-                'number',  // threshold_low_frozen_water
-                'number', // threshold_low_soil_moisture
-                'number',  // threshold_high_soil_moisture
-                'number',  // threshold_low_air_humidity 
-                'number',  // threshold_high_air_humidity
-                'number',  // threshold_low_temperature
-                'number',  // threshold_high_temperature
+        // Accéder à l'objet du tableau
+        const updateData = RegParamUpdate[0];  // Accès à l'objet unique dans le tableau RegParamUpdate
+
+        // Si updateData est bien défini, créer le tableau Data
+        if (updateData) {
+            const Data = [
+                updateData.threshold_low_frozen_water,
+                updateData.threshold_low_soil_moisture,
+                updateData.threshold_high_soil_moisture,
+                updateData.threshold_low_air_humidity,
+                updateData.threshold_high_air_humidity,
+                updateData.threshold_low_temperature,
+                updateData.threshold_high_temperature
             ];
 
-            // Vérification des types de données
-            for (let i = 0; i < data.length; i++) {
-                // Vérification du type des données par rapport aux types attendus
-                if (typeof data[i] !== expectedTypes[i]) {
-                    return false; // Si un type ne correspond pas, retourner false
-                }
-            }
-            return true; // Si tous les types sont valides, retourner true
-        };
+            // Fonction de vérification des types
+            const checkDataTypes = (data) => {
+                const expectedTypes = [
+                    'number',  // threshold_low_frozen_water
+                    'number',  // threshold_low_soil_moisture
+                    'number',  // threshold_high_soil_moisture
+                    'number',  // threshold_low_air_humidity
+                    'number',  // threshold_high_air_humidity
+                    'number',  // threshold_low_temperature
+                    'number'   // threshold_high_temperature
+                ];
 
-        // Vérifier les types des données
-        if (!checkDataTypes(Data)) {
+                // Vérification des types de données
+                for (let i = 0; i < data.length; i++) {
+                    if (typeof data[i] !== expectedTypes[i]) {
+                        return false; // Si un type ne correspond pas, retourner false
+                    }
+                }
+                return true; // Si tous les types sont valides, retourner true
+            };
+
+            // Vérifier les types des données
+            if (!checkDataTypes(Data)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Les types de données ne sont pas valides."
+                });
+            }
+
+            const sqlUpdate = `
+            UPDATE RegulationParameters SET 
+                threshold_low_frozen_water = ?,
+                threshold_low_soil_moisture = ?,
+                threshold_high_soil_moisture = ?,
+                threshold_low_air_humidity = ?,
+                threshold_high_air_humidity = ?,
+                threshold_low_temperature = ?,
+                threshold_high_temperature = ?
+            `;
+
+            const values = Data; // Utilisation du tableau 'Data'
+
+            // Exécution de la requête SQL
+            db.query(sqlUpdate, values, (err, result) => {
+                if (err) {
+                    console.error("Erreur SQL :", err);
+                    return res.status(500).json({ error: "Erreur lors de la mise à jour des paramètres." });
+                }
+                console.log("Valeurs modifiées dans la base de données.");
+
+                // Envoyer la réponse au client
+                res.status(200).json({
+                    success: true,
+                    values
+                });
+            });
+
+            // Sauvegarde des données dans un fichier
+            fs.writeFileSync(SaveFilePath, '', 'utf-8'); // Effacer le contenu actuel de la dernière sauvegarde
+            fs.writeFileSync(SaveFilePath, fs.readFileSync(mainFilePath, 'utf-8'), 'utf-8'); // Ajouter une nouvelle sauvegarde des données du mainFilePath (RegParam.json)
+
+            // Démarrer un timer de 15 minutes (900000 ms)
+            setTimeout(() => {
+                try {
+                    // Lire les données de RegParamUpdate.json
+                    const UpdateData = fs.readFileSync(UpdateFilePath, 'utf-8');
+
+                    // Écrire dans RegParam.json
+                    fs.writeFileSync(mainFilePath, '', 'utf-8'); // Effacer le contenu actuel
+                    fs.writeFileSync(mainFilePath, UpdateData, 'utf-8'); // Remplacer le contenu par les nouvelles données
+                    console.log("Données de RegParamUpdate.json copiées dans RegParam.json.");
+                } catch (err) {
+                    console.error("Erreur lors de la mise à jour de RegParam.json :", err);
+                }
+            }, 120000); // 2 minutes (120000 ms)
+
+        } else {
+            console.error("updateData est indéfini ou mal formaté.");
             return res.status(400).json({
                 success: false,
-                message: "Les types de données ne sont pas valides."
+                message: "Les données sont mal formatées."
             });
         }
-
-        const sqlUpdate = `
-        UPDATE RegulationParameters SET 
-            threshold_low_frozen_water = ?,
-            threshold_low_soil_moisture = ?,
-            threshold_high_soil_moisture = ?,
-            threshold_low_air_humidity = ?,
-            threshold_high_air_humidity = ?,
-            threshold_low_temperature = ?,
-            threshold_high_temperature = ?
-        `;
-
-        const values = Object.values(Data);
-    
-
-        db.query(sqlUpdate, values, (err, result) => {
-            if (err) {
-                console.error("Erreur SQL :", err);
-                return res.status(500).json({ error: "Erreur lors de la mise à jour des paramètres." });
-            }
-            console.log("Valeurs modifiées dans la base de données.");
-
-            // Envoyer la réponse au client
-            res.status(200).json({
-                success: true,
-                values
-            });
-        });
-
-        fs.writeFileSync(SaveFilePath, '', 'utf-8'); // Effacer le contenu actuel de la dernière sauvegarde
-        fs.writeFileSync(SaveFilePath, fs.readFileSync(mainFilePath, 'utf-8'), 'utf-8');// Ajouter une nouvelle sauvegarde des données du mainFilePath (RegParam.json)
-
-        // Démarrer un timer de 15 minutes (900000 ms)
-        setTimeout(() => {
-            try {
-                // Lire les données de RegParamUpdate.json
-                const UpdateData = fs.readFileSync(UpdateFilePath, 'utf-8');
-
-                // Écrire dans RegParam.json
-                fs.writeFileSync(mainFilePath, '', 'utf-8'); // Effacer le contenu actuel
-                fs.writeFileSync(mainFilePath, UpdateData, 'utf-8'); // Remplacer le contenu par les nouvelles données
-                console.log("Données de RegParamUpdate.json copiées dans RegParam.json.");
-            } catch (err) {
-                console.error("Erreur lors de la mise à jour de RegParam.json :", err);
-            }
-        }, 900000); // 15 minutes
 
     } catch (error) {
         console.error("Erreur :", error);
@@ -449,6 +461,7 @@ app.put(config.updateRegParam, async (req, res) => {
         });
     }
 });
+
 
 
 
