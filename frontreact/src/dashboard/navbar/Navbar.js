@@ -72,7 +72,7 @@ const Navbar = () => {
       <ul className="sidebar-menu">
         <li><Link to="/dashboard">🏠 Accueil</Link></li>
         {isAuthenticated && <li><Link to="/new-user">👤 Créer un utilisateur</Link></li>}
-        <li><Link to="/settings">⚙️ Paramètres</Link></li>
+        {isAuthenticated && <li><Link to="/regulation">⚙️ Régulation</Link></li>}
 
         {/* Si l'utilisateur est connecté → bouton Déconnexion | Sinon → Connexion */}
         <li>

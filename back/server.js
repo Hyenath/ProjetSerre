@@ -462,7 +462,78 @@ app.put(config.updateRegParam, async (req, res) => {
     }
 });
 
+// Route pour vérifier l'accès RFID
+app.post("/check-access", (req, res) => {
+    const { rfid_id } = req.body;
 
+    if (!rfid_id) {
+        return res.status(400).json({ success: false, message: "UID manquant !" });
+    }
+
+    const query = `SELECT AuthorizedAccess.rfid_id, t.id AS access_id FROM AuthorizedAccess a
+                   LEFT JOIN TimestampedAccess t ON a.TimestampedAccess_Id = t.id
+                   WHERE a.rfid_id = ?`;
+
+    db.query(query, [rfid_id], (err, result) => {
+        if (err) return res.status(500).json({ success: false, error: err });
+
+        if (result.length > 0) {
+            // Accès autorisé -> Enregistrement du passage
+            const insertQuery = `INSERT INTO TimestampedAccess (date) VALUES (NOW())`;
+
+            db.query(insertQuery, (err, insertResult) => {
+                if (err) return res.status(500).json({ success: false, error: err });
+
+                res.json({
+                    success: true,
+                    message: "Accès autorisé !",
+                    access_id: insertResult.insertId
+                });
+            });
+
+        } else {
+            res.json({ success: false, message: "Accès refusé !" });
+        }
+    });
+});
+
+//--------------------------------Ajouter les logs dans la base---------------------------------------//
+app.post(config.postLog, async (req, res) => {
+    try {
+        const { event_type, description, user_id } = req.body; 
+
+        // Vérifier que toutes les données sont bien présentes
+        if (!event_type || !description || !user_id) {
+            return res.status(400).json({
+                success: false,
+                message: "Données manquantes. Veuillez fournir event_type, description et user_id."
+            });
+        }
+
+        // Requête SQL pour insérer un log
+        const sqlInsert = `INSERT INTO Authoriezs (event_type, description, user_id, timestamp) VALUES (?, ?, ?, NOW())`;
+
+        db.query(sqlInsert, [event_type, description, user_id], (err, result) => {
+            if (err) {
+                console.error("Erreur SQL :", err);
+                return res.status(500).json({ error: "Erreur lors de l'ajout du log." });
+            }
+            console.log("Log ajouté avec succès.");
+            res.status(200).json({
+                success: true,
+                log_id: result.insertId,
+                message: "Log ajouté avec succès."
+            });
+        });
+
+    } catch (error) {
+        console.error("Erreur serveur :", error);
+        res.status(500).json({
+            success: false,
+            errormessage: "Erreur interne lors de l'ajout du log."
+        });
+    }
+});
 
 
 // Démarrer le serveur

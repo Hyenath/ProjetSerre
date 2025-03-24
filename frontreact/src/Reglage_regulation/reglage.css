@@ -1,0 +1,68 @@
+/* Settings.css */
+.settings-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
+  
+  .settings-container h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .settings-container ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .settings-container li {
+    margin-bottom: 15px;
+  }
+  
+  .settings-container strong {
+    color: #333;
+    font-size: 18px;
+  }
+  
+  .settings-container input {
+    padding: 8px;
+    margin-right: 10px;
+    font-size: 16px;
+    width: 150px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .settings-container button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  
+  .settings-container button.save-btn {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .settings-container button.cancel-btn {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .settings-container span {
+    cursor: default;
+    color: black;
+  }
+  
+  .settings-container span.editable {
+    cursor: pointer;
+    color: blue;
+  }
+  
+  .settings-container p.loading {
+    font-size: 16px;
+    color: #555;
+  }  
