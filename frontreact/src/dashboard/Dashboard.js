@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./navbar/Navbar";
 import Footer from "./footer/Footer";
+import BoutonIHM from "../component/bouton/BoutonIHM";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, PieChart, Pie, Cell,
 } from "recharts";
@@ -16,6 +17,11 @@ const Dashboard = () => {
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
 
+      if (!token) {
+        setIsAuthenticated(false);
+        return;
+      }
+
       try {
         const response = await fetch("http://192.168.65.74:3001/check-token", {
           method: "POST",
@@ -26,6 +32,7 @@ const Dashboard = () => {
 
         if (!response.ok || !data.valid) {
           setErrorMessage(data.message || "Token invalide ou expiré");
+          setIsAuthenticated(false);
           localStorage.removeItem("token");
         }
 
@@ -33,15 +40,12 @@ const Dashboard = () => {
       } catch (error) {
         console.error("Erreur de vérification du token:", error);
         setErrorMessage("Erreur de connexion au serveur.");
+        setIsAuthenticated(false);
       }
     };
 
     checkAuth();
   }, [navigate]);
-
-  if (!isAuthenticated) {
-    return <div>{errorMessage && <p>{errorMessage}</p>}</div>;
-  }
 
   // Données pour le graphique
   const data = [
@@ -111,6 +115,12 @@ const Dashboard = () => {
             <Legend />
             </PieChart>
           </div>
+          {isAuthenticated && (
+            <div>
+              <h1>🔧 Interface de contrôle</h1>
+              <BoutonIHM label="Vasistas" apiEndpoint="http://192.168.65.74:3001/Route_vasistas" />
+            </div>
+          )}
 
       </div>
       </main>
