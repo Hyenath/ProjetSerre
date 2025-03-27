@@ -32,8 +32,9 @@ const Dashboard = () => {
 
         if (!response.ok || !data.valid) {
           setErrorMessage(data.message || "Token invalide ou expiré");
-          setIsAuthenticated(false);
           localStorage.removeItem("token");
+          setIsAuthenticated(false);
+          return;
         }
 
         setIsAuthenticated(true);
@@ -47,7 +48,7 @@ const Dashboard = () => {
     checkAuth();
   }, [navigate]);
 
-  // Données pour le graphique
+  // Données pour les graphiques
   const data = [
     { name: "Jan", utilisateurs: 120 },
     { name: "Fév", utilisateurs: 150 },
@@ -72,17 +73,10 @@ const Dashboard = () => {
           <h1>Bienvenue sur le tableau de bord de la serre</h1>
           <p>Voici un aperçu des statistiques de fréquentation.</p>
 
-          {/* Graphique amélioré */}
+          {/* Graphique des utilisateurs */}
           <div className="chart-container">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#399196" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#399196" stopOpacity={0.2} />
-                  </linearGradient>
-                </defs>
-
                 <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
                 <XAxis dataKey="name" tick={{ fill: "#399196" }} />
                 <YAxis tick={{ fill: "#399196" }} />
@@ -93,28 +87,28 @@ const Dashboard = () => {
             </ResponsiveContainer>
           </div>
 
+          {/* Graphique de consommation d'eau */}
           <div className="dashboard">
             <h1>Graphe de la consommation d'eau</h1>
             <PieChart width={300} height={300}>
-            <Pie
-              data={eau_type}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"  // Centrage du graphique
-              cy="50%"
-              innerRadius={50} // Rayon intérieur pour un graphique en anneau
-              outerRadius={80} // Rayon extérieur
-              fill="#8884d8"
-              paddingAngle={5}
-            >
-              {eau_type.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
+              <Pie
+                data={eau_type}
+                dataKey="value"
+                nameKey="name"
+                cx="50%" cy="50%"
+                innerRadius={50} outerRadius={80}
+                fill="#8884d8" paddingAngle={5}
+              >
+                {eau_type.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
             </PieChart>
           </div>
+
+          {/* Interface de contrôle, affichée seulement si authentifié */}
           {isAuthenticated && (
             <div>
               <h1>🔧 Interface de contrôle</h1>
@@ -122,7 +116,9 @@ const Dashboard = () => {
             </div>
           )}
 
-      </div>
+          {/* Affichage d'un message d'erreur si nécessaire */}
+          {errorMessage && <p className="error-message">{errorMessage}</p>}
+        </div>
       </main>
       <Footer />
     </div>
