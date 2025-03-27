@@ -77,7 +77,7 @@ const Regulation = () => {
       const response = await fetch("http://192.168.65.74:3001/updateRegParam", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [field]: newValues[field] }),
+        body: JSON.stringify({ [field]: newValues[field] })
       });
 
       if (response.ok) {

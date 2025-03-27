@@ -17,7 +17,6 @@ const config = require('./config.json');
 const data = require('./data.json');
 const RegParam = require('./RegParam.json');
 const RegParamSave = require('./RegParamSave.json');
-const RegParamUpdate = require('./RegParamUpdate.json');
 
 //Pour lancer les serveurs, se référer au package.json du frontreact//
 
@@ -352,8 +351,119 @@ app.put(config.updateRegParam, async (req, res) => {
         // Chemins des fichiers JSON
         const mainFilePath = path.join(__dirname, 'RegParam.json');
         const SaveFilePath = path.join(__dirname, 'RegParamSave.json');
+
+        // Récupérer la clé et la valeur envoyées depuis le front-end
+        const field = Object.keys(req.body)[0]; // "threshold_low_soil_moisture"
+        let value = Object.values(req.body)[0]; // 45
+
+        console.log("Données reçues :", req.body);
+
+        // Vérification que la clé envoyée correspond bien à un des champs attendus
+        const Data = [
+            'threshold_low_frozen_water',
+            'threshold_low_soil_moisture',
+            'threshold_high_soil_moisture',
+            'threshold_low_air_humidity',
+            'threshold_high_air_humidity',
+            'threshold_low_temperature',
+            'threshold_high_temperature'
+        ];
+
+        // Vérifier si la clé reçue est valide
+        if (!Data.includes(field)) {
+            console.log(`Le champ '${field}' n'est pas valide.`);
+            return res.status(400).json({
+                success: false,
+                message: `Le champ '${field}' n'est pas valide.`
+            });
+        }
+
+        value = Number(value); // Convertit la valeur en nombre
+
+        // Vérifier que la valeur est bien un nombre
+        if (isNaN(value)) { // NaN = Not a Number
+            console.log(`La valeur de '${field}' n'est pas un nombre.`);
+            return res.status(400).json({
+                success: false,
+                message: `La valeur de '${field}' doit être un nombre.`
+            });
+        }
+
+        // SQL pour mettre à jour le paramètre correspondant
+        const sqlUpdate = `UPDATE RegulationParameters SET ${field} = ?`;
+
+        // Exécution de la requête SQL
+        db.query(sqlUpdate, [value], (err, result) => {
+            if (err) {
+                console.error("Erreur SQL :", err);
+                return res.status(500).json({ error: "Erreur lors de la mise à jour des paramètres." });
+            }
+            console.log(`Valeur modifiée dans la base de données pour ${field} avec ${value}.`);
+
+            // Envoyer la réponse au client avec la valeur mise à jour
+            res.status(200).json({
+                success: true,
+                field: field,
+                value: value
+            });
+        });
+
+        // Sauvegarde de l'ancien fichier JSON
+        fs.writeFileSync(SaveFilePath, '', 'utf-8'); // Effacer le contenu actuel de la dernière sauvegarde
+        fs.writeFileSync(SaveFilePath, fs.readFileSync(mainFilePath, 'utf-8'), 'utf-8');
+
+        // Démarrer un timer de 5 minutes (300 000 ms)
+        setTimeout(() => {
+            try {
+                let currentData = [];
+        
+                // Lire les données existantes dans le fichier RegParam.json
+                try {
+                    currentData = JSON.parse(fs.readFileSync(mainFilePath, 'utf-8'));
+                } catch (err) {
+                    console.error("Erreur lors de la lecture de RegParam.json :", err);
+                }
+        
+                // Mettre à jour la valeur du champ spécifié dans les données existantes
+                if (currentData.length === 0) {
+                    currentData.push({}); // Si le tableau est vide, ajouter un objet vide
+                }
+                
+                currentData[0][field] = value;  // Mettre à jour la valeur dans le premier objet
+        
+                // Sauvegarder les nouvelles données dans le fichier JSON avec une indentation de 2 espaces
+                fs.writeFileSync(mainFilePath, '', 'utf-8'); // Effacer le contenu actuel de la dernière sauvegarde
+                fs.writeFileSync(mainFilePath, JSON.stringify(currentData, null, 2), 'utf-8');
+                console.log("Données mises à jour dans RegParam.json après un délai de 5 minutes.");
+        
+            } catch (err) {
+                console.error("Erreur lors de la mise à jour de RegParam.json :", err);
+            }
+        }, 300000); // 5 minutes (300 000 ms)
+        
+
+    } catch (error) {
+        console.error("Erreur :", error);
+        res.status(500).json({
+            success: false,
+            errormessage: "Erreur lors de la mise à jour."
+        });
+    }
+});
+
+
+
+/*
+//---------------------------------------OLD ONE(depuis un json)------------------------------------//
+//--------------------------------Modifier les paramètres de régulation---------------------------------------//
+app.put(config.updateRegParam, async (req, res) => {
+    try {
+        // Chemins des fichiers JSON
+        const mainFilePath = path.join(__dirname, 'RegParam.json');
+        const SaveFilePath = path.join(__dirname, 'RegParamSave.json');
         const UpdateFilePath = path.join(__dirname, 'RegParamUpdate.json');
 
+        
         // Accéder à l'objet du tableau
         const updateData = RegParamUpdate[0];  // Accès à l'objet unique dans le tableau RegParamUpdate
 
@@ -417,7 +527,7 @@ app.put(config.updateRegParam, async (req, res) => {
                     console.error("Erreur SQL :", err);
                     return res.status(500).json({ error: "Erreur lors de la mise à jour des paramètres." });
                 }
-                console.log("Valeurs modifiées dans la base de données.");
+                console.log("Valeurs modifiées dans la base de donnée par ${field}.");
 
                 // Envoyer la réponse au client
                 res.status(200).json({
@@ -461,8 +571,9 @@ app.put(config.updateRegParam, async (req, res) => {
         });
     }
 });
+*/
 
-// Route pour vérifier l'accès RFID
+//--------------------------------Route pour vérifier l'accès RFID--------------------------------//
 app.post("/check-access", (req, res) => {
     const { rfid_id } = req.body;
 
