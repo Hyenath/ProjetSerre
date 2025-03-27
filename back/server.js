@@ -352,13 +352,13 @@ app.put(config.updateRegParam, async (req, res) => {
         const mainFilePath = path.join(__dirname, 'RegParam.json');
         const SaveFilePath = path.join(__dirname, 'RegParamSave.json');
 
-        // Récupérer la clé et la valeur envoyées depuis le front-end
-        const field = Object.keys(req.body)[0]; // "threshold_low_soil_moisture"
-        let value = Object.values(req.body)[0]; // 45
+        // Récupérer toutes les clés et valeurs envoyées depuis le front-end
+        const fields = Object.keys(req.body); // "threshold_low_soil_moisture", "threshold_high_soil_moisture"
+        const values = Object.values(req.body); // 32, 20
 
         console.log("Données reçues :", req.body);
 
-        // Vérification que la clé envoyée correspond bien à un des champs attendus
+        // Vérification que les clés envoyées correspondent bien à des champs valides
         const Data = [
             'threshold_low_frozen_water',
             'threshold_low_soil_moisture',
@@ -369,44 +369,51 @@ app.put(config.updateRegParam, async (req, res) => {
             'threshold_high_temperature'
         ];
 
-        // Vérifier si la clé reçue est valide
-        if (!Data.includes(field)) {
-            console.log(`Le champ '${field}' n'est pas valide.`);
-            return res.status(400).json({
-                success: false,
-                message: `Le champ '${field}' n'est pas valide.`
-            });
-        }
+        const tab = [];
 
-        value = Number(value); // Convertit la valeur en nombre
-
-        // Vérifier que la valeur est bien un nombre
-        if (isNaN(value)) { // NaN = Not a Number
-            console.log(`La valeur de '${field}' n'est pas un nombre.`);
-            return res.status(400).json({
-                success: false,
-                message: `La valeur de '${field}' doit être un nombre.`
-            });
-        }
-
-        // SQL pour mettre à jour le paramètre correspondant
-        const sqlUpdate = `UPDATE RegulationParameters SET ${field} = ?`;
-
-        // Exécution de la requête SQL
-        db.query(sqlUpdate, [value], (err, result) => {
-            if (err) {
-                console.error("Erreur SQL :", err);
-                return res.status(500).json({ error: "Erreur lors de la mise à jour des paramètres." });
+        // Vérifier la validité de chaque champ et de sa valeur
+        for (let i = 0; i < fields.length; i++) {
+            const field = fields[i];
+            let value = values[i];
+            
+            // Vérifier si la clé reçue est valide
+            if (!Data.includes(field)) {
+                console.log(`Le champ '${field}' n'est pas valide.`);
+                return res.status(400).json({
+                    success: false,
+                    message: `Le champ '${field}' n'est pas valide.`
+                });
             }
-            console.log(`Valeur modifiée dans la base de données pour ${field} avec ${value}.`);
 
-            // Envoyer la réponse au client avec la valeur mise à jour
-            res.status(200).json({
-                success: true,
-                field: field,
-                value: value
+            value = Number(value); // Convertir la valeur en nombre
+
+            // Vérifier que la valeur est bien un nombre
+            if (isNaN(value)) {
+                console.log(`La valeur de '${field}' n'est pas un nombre.`);
+                return res.status(400).json({
+                    success: false,
+                    message: `La valeur de '${field}' doit être un nombre.`
+                });
+            }
+
+            // Ajouter la mise à jour à la liste des mises à jour
+            tab.push({ field, value });
+        }
+
+        // SQL pour mettre à jour les paramètres correspondants
+        for (const update of tab) {
+            const { field, value } = update;
+            const sqlUpdate = `UPDATE RegulationParameters SET ${field} = ?`;
+
+            // Exécution de la requête SQL
+            db.query(sqlUpdate, [value], (err, result) => {
+                if (err) {
+                    console.error("Erreur SQL :", err);
+                    return res.status(500).json({ error: "Erreur lors de la mise à jour des paramètres." });
+                }
+                console.log(`Valeur modifiée dans la base de données pour ${field} avec ${value}.`);
             });
-        });
+        }
 
         // Sauvegarde de l'ancien fichier JSON
         fs.writeFileSync(SaveFilePath, '', 'utf-8'); // Effacer le contenu actuel de la dernière sauvegarde
@@ -424,12 +431,15 @@ app.put(config.updateRegParam, async (req, res) => {
                     console.error("Erreur lors de la lecture de RegParam.json :", err);
                 }
         
-                // Mettre à jour la valeur du champ spécifié dans les données existantes
+                // Mettre à jour les valeurs des champs spécifiés dans les données existantes
                 if (currentData.length === 0) {
                     currentData.push({}); // Si le tableau est vide, ajouter un objet vide
                 }
-                
-                currentData[0][field] = value;  // Mettre à jour la valeur dans le premier objet
+
+                // Mettre à jour chaque champ avec sa nouvelle valeur
+                tab.forEach(update => {
+                    currentData[0][update.field] = update.value;
+                });
         
                 // Sauvegarder les nouvelles données dans le fichier JSON avec une indentation de 2 espaces
                 fs.writeFileSync(mainFilePath, '', 'utf-8'); // Effacer le contenu actuel de la dernière sauvegarde
@@ -439,8 +449,13 @@ app.put(config.updateRegParam, async (req, res) => {
             } catch (err) {
                 console.error("Erreur lors de la mise à jour de RegParam.json :", err);
             }
-        }, 300000); // 5 minutes (300 000 ms)
-        
+        }, 30000); // 5 minutes (300 000 ms)
+
+        // Répondre avec la confirmation des mises à jour
+        res.status(200).json({
+            success: true,
+            tab: tab
+        });
 
     } catch (error) {
         console.error("Erreur :", error);
@@ -450,6 +465,7 @@ app.put(config.updateRegParam, async (req, res) => {
         });
     }
 });
+
 
 
 
