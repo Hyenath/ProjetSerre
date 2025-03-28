@@ -112,7 +112,7 @@ const Dashboard = () => {
           {isAuthenticated && (
             <div>
               <h1>🔧 Interface de contrôle</h1>
-              <BoutonIHM label="Vasistas" apiEndpoint="http://192.168.65.74:3001/Route_vasistas" />
+              <BoutonIHM label="Vasistas" apiEndpoint="http://192.168.65.74:3001/test-vasistas" />
             </div>
           )}
 

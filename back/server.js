@@ -662,6 +662,9 @@ app.post(config.postLog, async (req, res) => {
     }
 });
 
+app.get("/test-vasistas", (req, res) => {
+    res.json({ Vasistas: "true" });
+  });
 
 // Démarrer le serveur
 app.listen(3001, () => {
