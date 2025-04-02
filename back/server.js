@@ -14,7 +14,6 @@ const app = express();
 
 //Fichiers JSON
 const config = require('./config.json');
-const data = require('./data.json');
 const RegParam = require('./RegParam.json');
 const RegParamSave = require('./RegParamSave.json');
 
@@ -193,6 +192,93 @@ app.post(config.verifytoken, (req, res) => {
 //--------------------------------Insérer Valeurs Capteurs dans la base---------------------------------------//
 app.post(config.add, async (req, res) => {
     try {
+        // Définition des champs attendus
+        const Data = [
+            'water_network',
+            'pump',
+            'rain_water_consumption',
+            'tap_water_consumption',
+            'soil_moisture_1',
+            'soil_moisture_2',
+            'soil_moisture_3',
+            'watering',
+            'misting',
+            'indoor_air_humidity',
+            'indoor_temperature',
+            'outdoor_temperature',
+            'open_window',
+            'heating'
+        ];
+
+        const tab = [];
+
+        console.log("Données reçues :", req.body);
+
+        // Vérification des champs et conversion des valeurs
+        for (const field of Data) {
+            let value = req.body[field];
+
+            // Vérifier que le champ est bien présent dans la requête
+            if (value === undefined) {
+                console.log(`Le champ '${field}' est manquant.`);
+                return res.status(400).json({
+                    success: false,
+                    message: `Le champ '${field}' est manquant.`
+                });
+            }
+
+            // Conversion des types en fonction du champ
+            if (['pump', 'watering', 'misting', 'open_window', 'heating'].includes(field)) {
+                value = value == "1" || value == 1; // Conversion en booléen
+            } else if (!isNaN(value)) {
+                value = Number(value); // Conversion en nombre si possible
+            } else {
+                console.log(`La valeur de '${field}' est invalide.`);
+                return res.status(400).json({
+                    success: false,
+                    message: `La valeur de '${field}' est invalide.`
+                });
+            }
+
+            tab.push(value);
+        }
+
+        // SQL d'insertion dans la base de données
+        const sqlInsert = `
+            INSERT INTO EventsRegulation 
+            (${Data.join(', ')}) 
+            VALUES (${Data.map(() => '?').join(', ')})
+        `;
+
+        // Exécuter la requête d'insertion dans la base de données
+        db.query(sqlInsert, tab, (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: "Erreur lors de l'insertion des valeurs." });
+            }
+            console.log("Valeurs insérées dans la base de données.");
+
+            // Retourner une réponse de succès avec les valeurs insérées
+            return res.status(200).json({
+                success: true,
+                values: req.body
+            });
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            errormessage: "Erreur lors de l'insertion."
+        });
+    }
+});
+
+/*
+//---------------------------------------OLD ONE(depuis un json)------------------------------------//
+//--------------------------------Insérer Valeurs Capteurs dans la base---------------------------------------//
+app.post(config.add, async (req, res) => {
+    try {
         // Données récupérées depuis le JSON
         const Data = [
             data.water_network,
@@ -284,8 +370,7 @@ app.post(config.add, async (req, res) => {
         });
     }
 });
-
-
+*/
 
 //--------------------------------Récupérer les paramètres de régulation---------------------------------------//
 app.get(config.getRegParam, async (req, res) => {
