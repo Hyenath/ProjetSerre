@@ -10,7 +10,8 @@ app.use(cors());
 const TCW241 = require('./class/TCW241');
 const MainManager = require('./class/MainManager');
 const tcw = new TCW241('192.168.65.252', 80);
-const mainManager = new MainManager();
+//const mainManager = new MainManager();
+
 
 // Route pour récupérer les données de la carte TWC241 envoyée chaque minute
 app.post('/route', (req,res) => {

@@ -1,5 +1,5 @@
 class RegulationManager {
-    constructor(ip, port) {
+    constructor() {
         this.indoorTemperature = 0.0;
         this.indoorMoisture = 0.0;
         this.soilMoisture = [0.0, 0.0, 0.0];
@@ -7,8 +7,6 @@ class RegulationManager {
         this.windowState = false;
         this.mistingState = false;
         this.wateringState = false;
-        this.ip = ip;
-        this.port = port;
     }
 
     updateSystem() {}
@@ -16,4 +14,4 @@ class RegulationManager {
     getMeanSoilMoisture() {}
 }
 
-module.exports = RegulationManager;
+module.exports=RegulationManager;

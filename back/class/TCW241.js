@@ -118,4 +118,4 @@ class TCW241 {
     enableWatering(enabled) {}
 }
 
-module.exports = TCW241;
+module.exports=TCW241;
