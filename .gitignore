@@ -1,6 +1,6 @@
 /back/node_modules
 /back/config.json
-/back/data.json
+/back/Log.json
 /back/RegParam.json
 /back/RegParamSave.json
 /back/RegParamUpdate.json
