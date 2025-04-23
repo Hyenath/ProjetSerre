@@ -115,6 +115,72 @@ app.post(config.login, loginLimiter, checkToken, async (req, res) => {
 app.post(config.register, async (req, res) => {
     const { username, lastname, firstname, mail, password } = req.body;
 
+    // Vérifier la validité de l'email
+    if (!mail.includes('@') || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(mail)) {
+        return res.status(400).json({ message: 'Email invalide' });
+    }
+
+    // Vérifier que la taille du pseudonyme respecte une valeur minimale et une valeur maximale
+    if (!username || username.length < 3 || username.length > 30 || /[^a-zA-Z0-9_]/.test(username)) {
+        return res.status(400).json({ message: 'Nom d\'utilisateur invalide (doit être entre 3 et 30 caractères et ne contenir que des lettres, chiffres et underscores).' });
+    }
+
+    // Vérifier la taille pour le nom
+    if (!lastname || lastname.length < 2 || lastname.length > 50 || /[^a-zA-Z\s-]/.test(lastname)) {
+        return res.status(400).json({ message: 'Nom invalide (doit être entre 2 et 50 caractères et ne contenir que des lettres, espaces et tirets).' });
+    }
+
+    // Vérifier la taille pour le prénom
+    if (!firstname || firstname.length < 2 || firstname.length > 50 || /[^a-zA-Z\s-]/.test(firstname)) {
+        return res.status(400).json({ message: 'Prénom invalide (doit être entre 2 et 50 caractères et ne contenir que des lettres, espaces et tirets).' });
+    }
+
+    // Vérifier la taille du mot de passe
+    if (!password || password.length < 6 || password.length > 20 || /[^a-zA-Z0-9!@#$%^&*()_+={}\[\]:;"'<>,.?\/\\|-]/.test(password)) {
+        return res.status(400).json({ message: 'Mot de passe invalide (doit être entre 6 et 20 caractères et ne contenir que des lettres, chiffres et symboles autorisés).' });
+    }
+
+    // Vérifier que l'email n'existe pas déjà dans la base de données
+    const sqlSelect = 'SELECT * FROM UserData WHERE mail = ?';
+    db.query(sqlSelect, [mail], (err, results) => {
+        if (err) {
+            return res.status(500).json({ message: 'Erreur serveur lors de la vérification de l\'utilisateur' });
+        }
+
+        if (results.length > 0) {
+            return res.status(400).json({ message: 'Email déjà pris' });
+        }
+
+        // Hachage du mot de passe
+        const hashedPassword = bcrypt.hashSync(password, 10);
+
+        // Insertion de l'utilisateur dans la base de données
+        const sqlInsert = 'INSERT INTO UserData (username, lastname, firstname, mail, password) VALUES (?, ?, ?, ?, ?)';
+        db.query(sqlInsert, [username, lastname, firstname, mail, hashedPassword], (err, result) => {
+            if (err) {
+                return res.status(500).json({ message: 'Erreur lors de l\'inscription dans la base de données' });
+            }
+
+            // Création du token JWT
+            const token = jwt.sign(
+                { id: result.insertId, email: mail },
+                config.key,
+                { expiresIn: '1h' }
+            );
+
+            // Réponse avec succès et token
+            res.status(201).json({ message: 'Inscription réussie', userId: result.insertId, mail, token });
+        });
+    });
+});
+
+
+/*
+//-----------------------------------------------OLD ONE-----------------------------------------------//
+//-----------------------------------------------REGISTER-------------------------------------------------------//
+app.post(config.register, async (req, res) => {
+    const { username, lastname, firstname, mail, password } = req.body;
+
     if (!mail.includes('@')) {
         return res.status(400).json({ message: 'Email invalide' });
     }
@@ -149,73 +215,6 @@ app.post(config.register, async (req, res) => {
         });
     });
 });
-
-
-/*
-//------------------------------------------------PROTOTYPE ONE-----------------------------------------------//
-//-----------------------------------------------REGISTER-------------------------------------------------------//
-app.post(config.register, async (req, res) => {
-    const { username, lastname, firstname, mail, password } = req.body;
-
-    // 1. Vérification de la validité de l'email
-    if (!mail.includes('@') || !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(mail)) {
-        return res.status(400).json({ message: 'Email invalide' });
-    }
-
-    // 2. Vérification de la validité du nom d'utilisateur
-    if (username.length < 3 || username.length > 30 || /[^a-zA-Z0-9_]/.test(username)) {
-        return res.status(400).json({ message: 'Nom d\'utilisateur invalide (doit être entre 3 et 30 caractères et ne contenir que des lettres, chiffres et underscores).' });
-    }
-
-    // 3. Vérification de la validité du nom
-    if (lastname.length < 2 || lastname.length > 50 || /[^a-zA-Z\s-]/.test(lastname)) {
-        return res.status(400).json({ message: 'Nom invalide (doit être entre 2 et 50 caractères et ne contenir que des lettres, espaces et tirets).' });
-    }
-
-    // 4. Vérification de la validité du prénom
-    if (firstname.length < 2 || firstname.length > 50 || /[^a-zA-Z\s-]/.test(firstname)) {
-        return res.status(400).json({ message: 'Prénom invalide (doit être entre 2 et 50 caractères et ne contenir que des lettres, espaces et tirets).' });
-    }
-
-    // 5. Vérification du mot de passe
-    if (password.length < 6 || password.length > 20 || /[^a-zA-Z0-9!@#$%^&*()_+={}\[\]:;"'<>,.?\/\\|-]/.test(password)) {
-        return res.status(400).json({ message: 'Mot de passe invalide (doit être entre 6 et 20 caractères et ne contenir que des lettres, chiffres et symboles autorisés).' });
-    }
-
-    // 6. Vérification si l'email existe déjà dans la base de données
-    const sqlSelect = 'SELECT * FROM UserData WHERE mail = ?';
-    db.query(sqlSelect, [mail], (err, results) => {
-        if (err) {
-            return res.status(500).json({ message: 'Erreur serveur lors de la vérification de l\'utilisateur' });
-        }
-
-        if (results.length > 0) {
-            return res.status(400).json({ message: 'Email déjà pris' });
-        }
-
-        // 7. Hachage du mot de passe
-        const hashedPassword = bcrypt.hashSync(password, 10);
-
-        // 8. Insertion de l'utilisateur dans la base de données
-        const sqlInsert = 'INSERT INTO UserData (username, lastname, firstname, mail, password) VALUES (?, ?, ?, ?, ?)';
-        db.query(sqlInsert, [username, lastname, firstname, mail, hashedPassword], (err, result) => {
-            if (err) {
-                return res.status(500).json({ message: 'Erreur lors de l\'inscription dans la base de données' });
-            }
-
-            // 9. Création du token JWT
-            const token = jwt.sign(
-                { id: result.insertId, email: mail },
-                config.key,
-                { expiresIn: '1h' }
-            );
-
-            // 10. Réponse avec succès et token
-            res.status(201).json({ message: 'Inscription réussie', userId: result.insertId, mail, token });
-        });
-    });
-});
-
 */
 
 //------------------------------------verif token---------------------------------------------//
