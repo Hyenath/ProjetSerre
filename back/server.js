@@ -183,48 +183,6 @@ app.post(config.register, async (req, res) => {
 });
 
 
-/*
-//-----------------------------------------------OLD ONE-----------------------------------------------//
-//-----------------------------------------------REGISTER-------------------------------------------------------//
-app.post(config.register, async (req, res) => {
-    const { username, lastname, firstname, mail, password } = req.body;
-
-    if (!mail.includes('@')) {
-        return res.status(400).json({ message: 'Email invalide' });
-    }
-
-    const sqlSelect = 'SELECT * FROM UserData WHERE mail = ?';
-    db.query(sqlSelect, [mail], (err, results) => {
-        if (err) {
-            return res.status(500).json({ message: 'Erreur serveur lors de la vérification de l\'utilisateur' });
-        }
-
-        if (results.length > 0) {
-            return res.status(400).json({ message: 'Email déjà pris' });
-        }
-
-        const hashedPassword = bcrypt.hashSync(password, 10);
-
-
-
-        const sqlInsert = 'INSERT INTO UserData (username, lastname, firstname, mail, password) VALUES (?, ?, ?, ?, ?)';
-        db.query(sqlInsert, [username, lastname, firstname, mail, hashedPassword], (err, result) => {
-            if (err) {
-                return res.status(500).json({ message: 'Erreur lors de l\'inscription dans la base de données' });
-            }
-
-            const token = jwt.sign(
-                { id: result.insertId, email: mail },
-                config.key,
-                { expiresIn: '1h' }
-            );
-
-            res.status(201).json({ message: 'Inscription réussie', userId: result.insertId, mail, token });
-        });
-    });
-});
-*/
-
 //------------------------------------verif token---------------------------------------------//
 
 app.post(config.verifytoken, (req, res) => {
@@ -288,6 +246,19 @@ app.post(config.add, checkToken, async (req, res) => {
         const tab = [];
 
         console.log("Données reçues :", req.body);
+
+        //--------------------------------------------------------------PROTOTYPE Envoi données capteur----------------------------------------------------//
+        /*
+        // Route pour obtenir les données des capteurs
+        try {
+            const sensordata = await poseidon.getSensorsData();
+            res.json(sensordata);
+            console.log("Sensor's Data:", sensordata);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Erreur lors de la récupération des données' });
+        }
+        */
 
         // Vérification des champs et conversion des valeurs
         for (const field in Data) {
@@ -373,103 +344,6 @@ app.post(config.add, checkToken, async (req, res) => {
     }
 });
 
-/*
-//---------------------------------------OLD ONE(depuis un json)------------------------------------//
-//--------------------------------Insérer Valeurs Capteurs dans la base---------------------------------------//
-app.post(config.add, async (req, res) => {
-    try {
-        // Données récupérées depuis le JSON
-        const Data = [
-            data.water_network,
-            data.pump === "1",
-            parseInt(data.rain_water_consumption, 10),
-            parseInt(data.tap_water_consumption, 10),
-            parseFloat(data.soil_moisture_1),
-            parseFloat(data.soil_moisture_2),
-            parseFloat(data.soil_moisture_3),
-            data.watering === "1",
-            data.misting === "1",
-            parseFloat(data.indoor_air_humidity),
-            parseFloat(data.indoor_temperature),
-            parseFloat(data.outdoor_temperature),
-            data.open_window === "1",
-            data.heating === "1"
-        ];
-        
-
-        // Fonction de vérification des types
-        const checkDataTypes = (data) => {
-            const expectedTypes = [
-                'string',  // water_network
-                'boolean', // pump
-                'number',  // rain_water_consumption
-                'number',  // tap_water_consumption 
-                'number',  // soil_moisture_1
-                'number',  // soil_moisture_2
-                'number',  // soil_moisture_3
-                'boolean', // watering
-                'boolean', // misting
-                'number',  // indoor_air_humidity
-                'number',  // indoor_temperature
-                'number',  // outdoor_temperature
-                'boolean', // open_window
-                'boolean'  // heating
-            ];
-
-            // Vérification des types de données
-            for (let i = 0; i < data.length; i++) {
-                // Vérification du type des données par rapport aux types attendus
-                if (typeof data[i] !== expectedTypes[i]) {
-                    return false; // Si un type ne correspond pas, retourner false
-                }
-            }
-            return true; // Si tous les types sont valides, retourner true
-        };
-
-        // Vérifier les types des données
-        if (!checkDataTypes(Data)) {
-            return res.status(400).json({
-                success: false,
-                message: "Les types de données ne sont pas valides."
-            });
-        }
-
-        // SQL d'insertion dans la base de données
-        const sqlInsert = `
-            INSERT INTO EventsRegulation 
-            (water_network, pump, rain_water_consumption, tap_water_consumption, 
-            soil_moisture_1, soil_moisture_2, soil_moisture_3, watering, misting, 
-            indoor_air_humidity, indoor_temperature, outdoor_temperature, open_window, heating) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-        const values = Object.values(Data); // Convertir les données dans un tableau pour l'insertion SQL
-
-        // Exécuter la requête d'insertion dans la base de données
-        db.query(sqlInsert, values, (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: "Erreur lors de l'insertion des valeurs." });
-            }
-            console.log("Valeurs insérées dans la base de données.");
-
-            // Retourner une réponse de succès avec les valeurs insérées
-            return res.status(200).json({
-                success: true,
-                values
-            });
-        });
-
-    } catch (error) {
-        console.error(error);
-        // Retourner une erreur interne si une exception est lancée
-        return res.status(500).json({
-            success: false,
-            errormessage: "Erreur lors de l'insertion." 
-        });
-    }
-});
-*/
 
 //--------------------------------Récupérer les paramètres de régulation---------------------------------------//
 app.get(config.getRegParam, async (req, res) => {
@@ -642,136 +516,6 @@ app.put(config.updateRegParam, checkToken, async (req, res) => {
     }
 });
 
-
-
-
-
-/*
-//---------------------------------------OLD ONE(depuis un json)------------------------------------//
-//--------------------------------Modifier les paramètres de régulation---------------------------------------//
-app.put(config.updateRegParam, async (req, res) => {
-    try {
-        // Chemins des fichiers JSON
-        const mainFilePath = path.join(__dirname, 'RegParam.json');
-        const SaveFilePath = path.join(__dirname, 'RegParamSave.json');
-
-        // Récupérer toutes les clés et valeurs envoyées depuis le front-end
-        const fields = Object.keys(req.body); // "threshold_low_soil_moisture", "threshold_high_soil_moisture"
-        const values = Object.values(req.body); // 32, 20
-
-        console.log("Données reçues :", req.body);
-
-        // Vérification que les clés envoyées correspondent bien à des champs valides
-        const Data = [
-            'threshold_low_frozen_water',
-            'threshold_low_soil_moisture',
-            'threshold_high_soil_moisture',
-            'threshold_low_air_humidity',
-            'threshold_high_air_humidity',
-            'threshold_low_temperature',
-            'threshold_high_temperature'
-        ];
-
-        const tab = [];
-
-        // Vérifier la validité de chaque champ et de sa valeur
-        for (let i = 0; i < fields.length; i++) {
-            const field = fields[i];
-            let value = values[i];
-            
-            // Vérifier si la clé reçue est valide
-            if (!Data.includes(field)) {
-                console.log(`Le champ '${field}' n'est pas valide.`);
-                return res.status(400).json({
-                    success: false,
-                    message: `Le champ '${field}' n'est pas valide.`
-                });
-            }
-
-            value = Number(value); // Convertir la valeur en nombre
-
-            // Vérifier que la valeur est bien un nombre
-            if (isNaN(value)) {
-                console.log(`La valeur de '${field}' n'est pas un nombre.`);
-                return res.status(400).json({
-                    success: false,
-                    message: `La valeur de '${field}' doit être un nombre.`
-                });
-            }
-
-            // Ajouter la mise à jour à la liste des mises à jour
-            tab.push({ field, value });
-        }
-
-        // SQL pour mettre à jour les paramètres correspondants
-        for (const update of tab) {
-            const { field, value } = update;
-            const sqlUpdate = `UPDATE RegulationParameters SET ${field} = ?`;
-
-            // Exécution de la requête SQL
-            db.query(sqlUpdate, [value], (err, result) => {
-                if (err) {
-                    console.error("Erreur SQL :", err);
-                    return res.status(500).json({ error: "Erreur lors de la mise à jour des paramètres." });
-                }
-                console.log(`Valeur modifiée dans la base de données pour ${field} avec ${value}.`);
-            });
-        }
-
-        // Sauvegarde de l'ancien fichier JSON
-        fs.writeFileSync(SaveFilePath, '', 'utf-8'); // Effacer le contenu actuel de la dernière sauvegarde
-        fs.writeFileSync(SaveFilePath, fs.readFileSync(mainFilePath, 'utf-8'), 'utf-8');
-
-        // Démarrer un timer de 5 minutes (300 000 ms)
-        setTimeout(() => {
-            try {
-                let currentData = [];
-        
-                // Lire les données existantes dans le fichier RegParam.json
-                try {
-                    currentData = JSON.parse(fs.readFileSync(mainFilePath, 'utf-8'));
-                } catch (err) {
-                    console.error("Erreur lors de la lecture de RegParam.json :", err);
-                }
-        
-                // Mettre à jour les valeurs des champs spécifiés dans les données existantes
-                if (currentData.length === 0) {
-                    currentData.push({}); // Si le tableau est vide, ajouter un objet vide
-                }
-
-                // Mettre à jour chaque champ avec sa nouvelle valeur
-                tab.forEach(update => {
-                    currentData[0][update.field] = update.value;
-                });
-        
-                // Sauvegarder les nouvelles données dans le fichier JSON avec une indentation de 2 espaces
-                fs.writeFileSync(mainFilePath, '', 'utf-8'); // Effacer le contenu actuel de la dernière sauvegarde
-                fs.writeFileSync(mainFilePath, JSON.stringify(currentData, null, 2), 'utf-8');
-                console.log("Données mises à jour dans RegParam.json après un délai de 5 minutes.");
-        
-            } catch (err) {
-                console.error("Erreur lors de la mise à jour de RegParam.json :", err);
-            }
-        }, 30000); // 5 minutes (300 000 ms)
-
-        // Répondre avec la confirmation des mises à jour
-        res.status(200).json({
-            success: true,
-            tab: tab
-        });
-
-    } catch (error) {
-        console.error("Erreur :", error);
-        res.status(500).json({
-            success: false,
-            errormessage: "Erreur lors de la mise à jour."
-        });
-    }
-});
-
-
-*/
-
 //--------------------------------Route pour vérifier l'accès RFID--------------------------------//
 app.post("/check-access", (req, res) => {
     const { rfid_id } = req.body;
@@ -807,8 +551,10 @@ app.post("/check-access", (req, res) => {
     });
 });
 
+/*
+//---------------------------------OLD ONE---------------------------------------------------------//
 //--------------------------------Ajouter les logs dans la base---------------------------------------//
-app.post(config.postLog, async (req, res) => {
+app.post(config.postRFIDLog, async (req, res) => {
     try {
         const { event_type, description, user_id } = req.body; 
 
@@ -844,6 +590,40 @@ app.post(config.postLog, async (req, res) => {
         });
     }
 });
+*/
+
+app.post(config.postRFIDLog, async (req, res) => {
+  const { rfid_id, lastname, firstname } = req.body;
+
+  if (!rfid_id) {
+        return res.status(400).json({ success: false, message: "UID manquant !" });
+    }
+
+  try {
+    // Insertion dans TimestampedAccess
+    const [timestampResult] = await connection.execute(
+      'INSERT INTO TimestampedAccess (date) VALUES (NOW())'
+    );
+    const timestampId = timestampResult.insertId;
+
+    // Insertion dans AuthorizedAccess
+    await connection.execute(
+      'INSERT INTO AuthorizedAccess (rfid_id, lastname, firstname, TimestampedAccess_Id) VALUES (?, ?, ?, ?)',
+      [rfid_id, lastname, firstname, timestampId]
+    );
+
+    await connection.end();
+
+    res.send({ success: true, message: "Log: " + timestampId });
+  } catch (err) {
+    console.error('Erreur MySQL :', err);
+    res.status(500).send('Erreur serveur');
+  }
+});
+
+
+
+
 
 //Florent
 vasistas = false;
@@ -860,11 +640,11 @@ app.get("/etat-vasistas", (req, res) => {
 // Route pour obtenir les données des capteurs
 app.get('/api/sensors', async (req, res) => {
     try {
-        const data = await poseidon.getSensorsData();
-        res.json(data);
-        console.log("Data:", data);
+        const temperature = await poseidon.readTemperatureRegister(36033);
+        res.json({ temperature }); // Objet avec une clé explicite
+        console.log("Température reçue:", temperature);
     } catch (err) {
-        console.error(err);
+        console.error("Erreur côté serveur Poseidon :", err);
         res.status(500).json({ error: 'Erreur lors de la récupération des données' });
     }
 });
