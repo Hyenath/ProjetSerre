@@ -1,4 +1,4 @@
-const http = require('http');
+const net = require('net');
 
 class Poseidon {
     constructor(ip, port) {
@@ -6,53 +6,69 @@ class Poseidon {
         this.port = port;
     }
 
-    // Méthode pour récupérer les données des capteurs
-    async getSensorsData() {
+    // Lecture de 2 registres (32 bits) à une adresse précise (ex: 36033)
+    async readTemperatureRegister(registerAddress) {
         return new Promise((resolve, reject) => {
-            const options = {
-                hostname: this.ip,
-                port: this.port,
-                path: '/status.json',
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + Buffer.from('admin:admin').toString('base64')
-                }
-            };
+            const client = new net.Socket();
 
-            const request = http.request(options, (resp) => {
-                let data = '';
+            const unitId = 1;
+            const transactionId = 0x0001;
+            const protocolId = 0x0000;
+            const length = 0x0006;
+            const functionCode = 0x04; // Read Input Registers
+            const quantity = 0x0002;
 
-                if (resp.statusCode !== 200) {
-                    return reject(`Erreur HTTP ${resp.statusCode}`);
-                }
+            // Modbus utilise un décalage de 1 (36033 → adresse 36032 en base 0)
+            const address = registerAddress - 1;
 
-                resp.on('data', (chunk) => {
-                    data += chunk;
-                });
+            const request = Buffer.alloc(12);
+            request.writeUInt16BE(transactionId, 0);
+            request.writeUInt16BE(protocolId, 2);
+            request.writeUInt16BE(length, 4);
+            request.writeUInt8(unitId, 6);
+            request.writeUInt8(functionCode, 7);
+            request.writeUInt16BE(address, 8);
+            request.writeUInt16BE(quantity, 10);
 
-                resp.on('end', () => {
-                    try {
-                        const jsonData = JSON.parse(data.trim());
-                        resolve(jsonData);
-                    } catch (error) {
-                        reject("Erreur de parsing JSON: " + error);
-                    }
-                });
+            client.connect(this.port, this.ip, () => {
+                client.write(request);
             });
 
-            request.on("error", (err) => {
-                reject("Erreur serveur: " + err.message);
+            client.on('data', (data) => {
+                // Les données commencent à l'octet 9
+                const raw = data.slice(9, 13); // 4 octets
+                // Swapped words + swapped bytes
+                const reordered = Buffer.from([
+                    raw[2], raw[3], raw[0], raw[1]
+                ]);
+                const value = reordered.readFloatBE(0);
+                client.destroy();
+                resolve(value);
             });
 
-            request.end();
+            client.on('error', (err) => {
+                reject("Erreur Modbus TCP: " + err.message);
+            });
         });
     }
 
-    // Vérifier si l'eau est gelée (exemple)
+    async getSensorsData() {
+        try {
+            const temperature = await this.readTemperatureRegister(36033);
+            return {
+                Temperature: temperature,
+                TapWaterLevel: 0, // Placeholder si non implémenté
+                RainWaterLevel: 0 // Placeholder si non implémenté
+            };
+        } catch (error) {
+            throw new Error("Erreur lors de la récupération des données : " + error);
+        }
+    }
+
     async isWaterFrozen() {
         try {
-            const data = await this.getSensorsData();
-            return data.Temperature < 0; // Si la température est inférieure à 0°C, l'eau est gelée
+            const temperature = await this.readTemperatureRegister(36033);
+            return temperature < 0;
         } catch (error) {
             console.error("Erreur lors de la vérification de l'eau gelée:", error);
             return null;
