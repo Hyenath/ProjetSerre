@@ -2,6 +2,14 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const mysql = require('mysql2');
 
+//Gestion des Classes
+
+//Poseidon
+const Poseidon = require('./class/Poseidon.js');
+const poseidon = new Poseidon('192.168.65.253', 502);
+//
+
+
 //Gestion des fichiers
 const fs = require('fs');
 const path = require('path');
@@ -837,9 +845,29 @@ app.post(config.postLog, async (req, res) => {
     }
 });
 
+//Florent
+vasistas = false;
+
 app.get("/test-vasistas", (req, res) => {
-    res.json({ Vasistas: "true" });
+    vasistas = !vasistas;
+    res.json({ Vasistas: vasistas });
   });
+
+app.get("/etat-vasistas", (req, res) => {
+    res.json({ Vasistas: vasistas });
+});
+
+// Route pour obtenir les données des capteurs
+app.get('/api/sensors', async (req, res) => {
+    try {
+        const data = await poseidon.getSensorsData();
+        res.json(data);
+        console.log("Data:", data);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur lors de la récupération des données' });
+    }
+});
 
 // Démarrer le serveur
 app.listen(3001, () => {
