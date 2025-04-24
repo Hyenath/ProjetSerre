@@ -2,13 +2,15 @@ const express = require('express');
 const cors = require("cors");
 const bodyParser = require('body-parser');
 
-const MainManager = require('./class/MainManager');
+const WaterManager = require('./class/WaterManager');
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-const mainManager = new MainManager();
+const mainManager = {
+    waterManager: new WaterManager('192.168.1.100', 502) // ← IP & port du Poseidon à adapter
+};
 
 // Route pour récupérer les données des capteurs Poseidon2 3268
 app.get('/poseidon/sensors', async (req, res) => {
@@ -35,7 +37,7 @@ app.get('/poseidon/waterFrozen', async (req, res) => {
 // Route pour récupérer l'état de la source d'eau
 app.get('/waterManager/source', async (req, res) => {
     try {
-        await mainManager.updateSystem();
+        await mainManager.waterManager.switchWaterSource();
         return res.json({ waterSource: mainManager.waterManager.waterSource });
     } catch (error) {
         console.error("Erreur dans /waterManager/source:", error);
@@ -44,7 +46,7 @@ app.get('/waterManager/source', async (req, res) => {
 });
 
 // Lancement du serveur
-const PORT = 0;
+const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Serveur en écoute sur le port ${PORT}`);
 });
