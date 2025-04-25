@@ -23,6 +23,18 @@ class TCW241 {
         let humid = -1.91e-9 * Vout ** 3 + 1.33e-5 * Vout ** 2 + 9.56e-3 * Vout - 21.6;
         return Math.max(0.02, Math.min(humid, 100));
     }
+    
+    async #getVasistasState() {
+        try {
+            const result = await this.modbusClient.readCoils(103, 1);
+            const state = result.response._body._valuesAsArray[0];
+            console.log(`Relais ${103} état :`, state ? 'ON' : 'OFF');
+            return state;
+        } catch (error) {
+            console.error(`Erreur lors de la lecture du relais ${103} :`, error);
+            return null;
+        }
+    }
 
     async readSoilMoisture(sensorId) {
         const options = {
@@ -68,10 +80,22 @@ class TCW241 {
     enableMisting(enabled) {}
     enableWatering(enabled) {}
     async setWindowState(opened) {
-        // Exemple : activé/désactivé relais 8
-        const coilIndex = 103; // Hypothèse : relais 8
-        await this.modbusClient.writeSingleCoil(coilIndex, opened);
-        console.log("Fenêtre", opened ? "ouverte" : "fermée");
+        try {
+            const isOpen = await this.#getVasistasState();
+    
+            if (isOpen === null) throw new Error("Impossible de lire l'état actuel du vasistas");
+    
+            if (isOpen !== opened) {
+                await this.modbusClient.writeSingleCoil(103, opened);
+                return { success: true, message: `Vasistas ${opened ? "ouvert" : "fermé"}` };
+            }
+    
+            return { success: true, message: `Vasistas déjà ${opened ? "ouvert" : "fermé"}` };
+    
+        } catch (error) {
+            console.error("Erreur Modbus serverGestion :", error);
+            return { success: false, error: error.message };
+        }
     }
 }
 
