@@ -593,20 +593,22 @@ app.post(config.postRFIDLog, async (req, res) => {
 */
 app.post(config.postRFIDLog, async (req, res) => {
     const { rfid_id, lastname, firstname } = req.body;
+    console.log("Body Content: ", req.body);
 
     if (!rfid_id) {
         return res.status(400).json({ success: false, message: "UID manquant !" });
     }
 
     try {
-        // Insertion dans TimestampedAccess pour enregistrer la date et récupérer l'insertId
+        // Insertion dans TimestampedAccess pour enregistrer la date et l'heure et récupérer l'insertId
         const timestampResult = await new Promise((resolve, reject) => {
             db.query('INSERT INTO TimestampedAccess (date) VALUES (NOW())', (err, result) => {
+                console.log("Contenu retourné suite à l'insertion", result);
                 if (err) {
                     console.error("Erreur lors de l'insertion dans TimestampedAccess : ", err);
                     reject(err);
                 } else {
-                    console.log("TimestampedAccess inséré avec succès. ID : ", result.insertId);
+                    console.log("Timestamped de l'accès autorisé inséré avec succès pour l'ID : ", result.insertId);
                     resolve(result);
                 }
             });
@@ -630,7 +632,7 @@ app.post(config.postRFIDLog, async (req, res) => {
                         console.error("Erreur lors de l'insertion dans AuthorizedAccess : ", err);
                         reject(err);
                     } else {
-                        console.log("AuthorizedAccess inséré avec succès. ID : ", result.insertId);
+                        console.log("AuthorizedAccess inséré avec succès pour l'ID : ", result.insertId);
                         resolve(result);
                     }
                 }
@@ -641,8 +643,8 @@ app.post(config.postRFIDLog, async (req, res) => {
         res.json({ success: true, message: `Log ajouté avec ID ${timestampId}` });
 
     } catch (err) {
-        console.error('Erreur lors de l\'ajout du log RFID :', err);
-        res.status(500).json({ success: false, error: 'Erreur lors de l\'ajout du log RFID' });
+        console.error("Erreur lors de l'ajout du log RFID :", err);
+        res.status(500).json({ success: false, error: "Erreur lors de l'ajout du log RFID" });
     }
 });
 
@@ -653,7 +655,7 @@ app.post(config.postRFIDLog, async (req, res) => {
 
 
 
-//Florent
+//Florent (Capture des données Réelles => GET)
 vasistas = false;
 
 app.get("/test-vasistas", (req, res) => {
@@ -676,6 +678,67 @@ app.get('/api/sensors', async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la récupération des données' });
     }
 });
+
+app.get("/indoor-temperature", checkToken, async (req, res) => {
+    try {
+      const sql = `
+        SELECT indoor_temperature, date 
+        FROM EventsRegulation
+        ORDER BY date ASC
+        LIMIT 10
+      `;
+  
+      db.query(sql, (err, results) => {
+        if (err) {
+          console.error("Erreur MySQL :", err);
+          return res.status(500).json({ error: "Erreur serveur" });
+        }
+  
+        // Format des données pour le front
+        const data = results.map(row => ({
+          name: new Date(row.date).toLocaleString("fr-FR", {
+             day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
+          }),
+          température: row.indoor_temperature
+        }));
+  
+        res.json(data);
+      });
+    } catch (err) {
+      console.error("Erreur serveur :", err);
+      res.status(500).json({ error: "Erreur serveur" });
+    }
+  });
+
+  app.get("/water-conso", checkToken, async (req, res) => {
+    try {
+      const sql = `
+        SELECT rain_water_consumption, tap_water_consumption 
+        FROM EventsRegulation
+        ORDER BY date DESC
+        LIMIT 1
+      `;
+  
+      db.query(sql, (err, results) => {
+        if (err) {
+          console.error("Erreur MySQL :", err);
+          return res.status(500).json({ error: "Erreur serveur" });
+        }
+  
+        // Envoi direct des deux valeurs (sans map, puisque 1 seul résultat)
+        const row = results[0];
+        const data = {
+          rain: row.rain_water_consumption,
+          tap: row.tap_water_consumption
+        };
+  
+        res.json(data);
+      });
+    } catch (err) {
+      console.error("Erreur serveur :", err);
+      res.status(500).json({ error: "Erreur serveur" });
+    }
+  });
 
 // Démarrer le serveur
 app.listen(3001, () => {
