@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 const mainManager = {
-    waterManager: new WaterManager('192.168.1.100', 502) // ← IP & port du Poseidon à adapter
+    waterManager: new WaterManager('192.168.65.253', 502) // ← IP & port du Poseidon à adapter
 };
 
 // Route pour récupérer les données des capteurs Poseidon2 3268

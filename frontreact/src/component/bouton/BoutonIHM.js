@@ -1,47 +1,58 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./BoutonIHM.css"; // Fichier CSS pour le style
 
-const BoutonIHM = ({ label, apiEndpoint, initialColor = "blue" }) => {
+const BoutonIHM = ({ label, apiEndpoint, apiEtat, initialColor = "blue" }) => {
   const [color, setColor] = useState(initialColor);
+  const [texteEtat, setTexteEtat] = useState("...");
 
+  useEffect(() => {
+    const fetchEtatInitial = async () => {
+      try {
+        const response = await fetch(apiEtat, { method: "GET" });
+        const data = await response.json();
+  
+        if (data.Vasistas === true) {
+          setColor("green");
+          setTexteEtat("Ouvert");
+        } else {
+          setColor("red");
+          setTexteEtat("Fermé");
+        }
+      } catch (error) {
+        console.error("Erreur d'init :", error);
+        setColor("red");
+        setTexteEtat("Erreur");
+      }
+    };
+  
+    fetchEtatInitial();
+  }, [apiEtat]);
+  
   const handleClick = async () => {
     try {
-      // Changement de couleur temporaire pour indiquer l'action
-      setColor("gray");
-
-      // Envoi de la requête à l'API (GET car pas de JSON à l'envoi)
       const response = await fetch(apiEndpoint, { method: "GET" });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la requête API");
-      }
-
       const data = await response.json();
-
-      // Vérification du JSON de retour
-      if (data.Vasistas === "true") {
-        setColor("green"); // ✅ Succès → couleur verte
-        console.log(`✅ ${label} activé avec succès`);
+  
+      if (data.Vasistas === true) {
+        setColor("green");
+        setTexteEtat("Ouvert");
       } else {
-        setColor("red"); // ❌ Réponse incorrecte → couleur rouge
-        console.warn(`⚠️ Réponse inattendue de l'API pour ${label}`);
+        setColor("red");
+        setTexteEtat("Fermé");
       }
     } catch (error) {
-      setColor("red"); // ❌ Erreur de connexion ou serveur
-      console.error(`❌ Erreur lors de l'action ${label} :`, error);
+      console.error(`Erreur API ${label} :`, error);
+      setColor("red");
+      setTexteEtat("Erreur");
     }
-
-    // Retour à la couleur initiale après 2 secondes
-    setTimeout(() => setColor(initialColor), 2000);
   };
-
   return (
     <button
       className="bouton-ihm"
       style={{ backgroundColor: color }}
       onClick={handleClick}
     >
-      {label}
+      {label} - {texteEtat}
     </button>
   );
 };

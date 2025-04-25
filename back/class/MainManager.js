@@ -11,7 +11,7 @@ class MainManager {
     constructor() {
         this.database = 'mysql';
         this.waterManager = null; // Instance de WaterManager
-        this.regulationManager = new RegulationManager('192.168.65.252', 80); // Instance de RegulationManager
+//        this.regulationManager = new RegulationManager('192.168.65.252', 80); // Instance de RegulationManager
         this.wss = null; // Instance de WebSocketServer
         this.regulationParameters = null; // Instance de RegulationParameters
         this.rfidReader = null; // Instance de RFIDReader

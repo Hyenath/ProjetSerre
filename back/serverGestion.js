@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require("cors");
-const http = require('http');
 const bodyParser = require('body-parser');
 const app = express();
 
@@ -9,9 +8,54 @@ app.use(cors());
 
 const TCW241 = require('./class/TCW241');
 const MainManager = require('./class/MainManager');
-const tcw = new TCW241('192.168.65.252', 80);
-//const mainManager = new MainManager();
+const tcw = new TCW241('192.168.65.252', 502);
+const mainManager = new MainManager();
 
+const MODBUS_IP = "192.168.65.252";
+const MODBUS_PORT = 502;
+const VASISTAS_RELAY_ADDRESS = 103;
+
+async function getVasistasState() {
+    try {
+        const result = await tcw.modbusClient.readCoils(VASISTAS_RELAY_ADDRESS, 1);
+        const state = result.response._body._valuesAsArray[0];
+        console.log(`Relais ${VASISTAS_RELAY_ADDRESS} état :`, state ? 'ON' : 'OFF');
+        return state;
+    } catch (error) {
+        console.error(`Erreur lors de la lecture du relais ${VASISTAS_RELAY_ADDRESS} :`, error);
+        return null;
+    }
+}
+
+// Modifier l'état du relais (vasistas)
+async function setVasistasState(state) {
+    await tcw.modbusClient.writeSingleCoil(VASISTAS_RELAY_ADDRESS, state);
+}
+app.post('/vasistasModbus', async (req, res) => {
+    try {
+        const { state } = req.body;
+
+        if (state !== "open" && state !== "close") {
+            return res.status(400).json({ message: "État invalide, utilisez 'open' ou 'close'" });
+        }
+
+        const desiredState = state === "open"; // true = open, false = close
+        const isOpen = await getVasistasState();
+
+        if (isOpen === null) {
+            return res.status(500).json({ error: "Impossible de lire l'état actuel du vasistas" });
+        }
+
+        if (isOpen !== desiredState) {
+            await setVasistasState(desiredState);
+            return res.status(200).json({ message: `Vasistas ${state}` });
+        }
+        return res.status(200).json({ message: `Vasistas déjà ${state}` });
+    } catch (error) {
+        console.error("Erreur Modbus serverGestion :", error);
+        res.status(500).json({ error: "Erreur lors du contrôle du vasistas" });
+    }
+});
 
 // Route pour récupérer les données de la carte TWC241 envoyée chaque minute
 app.post('/route', (req,res) => {
@@ -21,6 +65,22 @@ app.post('/route', (req,res) => {
     if(tcw.readIndoorTemperature() =< 1) mainManager.sendMailAlert("Température intérieure inférieure à 1°C");
 */
     return res.status(200).json({ message : 'ok'});
+})
+
+app.post('/setWindowState', async (req, res) => {
+    const { state } = req.body;
+
+    if (state !== "open" && state !== "close") {
+        return res.status(400).json({ message: "État invalide, utilisez 'open' ou 'close'" });
+    }
+
+    try {
+        await tcw.setWindowState(state === "open" ? true : false);
+        return res.status(200).json({ message: `Vasistas ${state === "open" ? "ouvert" : "fermé"}` });
+    } catch (error) {
+        console.error("Erreur:", error);
+        res.status(500).json({ message: "Erreur lors de l'activation du vasistas" });
+    }
 })
 
 // Route pour ouvrir ou fermer le vasistas

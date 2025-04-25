@@ -2,7 +2,7 @@ const Poseidon = require('./Poseidon');
 
 class WaterManager {
     constructor(ip, port) {
-        this.poseidon = new Poseidon(ip, port);
+        this.poseidon = new Poseidon('192.168.65.253', 502);
         this.tapWaterUsed = 0;
         this.rainWaterUsed = 0;
         this.waterSource = "RAIN"; // RAIN ou TAP

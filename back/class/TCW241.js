@@ -1,36 +1,29 @@
+const net = require('net');
+const Modbus = require('jsmodbus');
 const http = require('http');
 
 class TCW241 {
     constructor(ip, port) {
         this.ip = ip;
         this.port = port;
-        this.tcpClient = null; // Simulation de la connexion Socket
-        this.modbusClient = null; // Simulation du client Modbus
-    }
-    
-    #calculHumidite(Vout) {
-        // Conversion de V en mV
-        Vout *= 1000;
-    
-        // Calcul de l'humidité
-        let humid = -1.91 * Math.pow(10, -9) * Math.pow(Vout, 3);
-        humid += 1.33 * Math.pow(10, -5) * Math.pow(Vout, 2);
-        humid += 9.56 * Math.pow(10, -3) * Vout;
-        humid -= 2.16 * Math.pow(10, 1);
-    
-        // Gestion des bornes
-        if (humid < 0.0) {
-            humid = 0.02;
-        } else if (humid > 100.0) {
-            humid = 100.0;
-        }
-    
-        return humid;
+        this.client = new net.Socket();
+        this.modbusClient = new Modbus.client.TCP(this.client, 1); // Slave ID = 1
+
+        this.client.connect({ host: ip, port: port }, () => {
+            console.log("✅ Connexion Modbus TCP établie");
+        });
+
+        this.client.on('error', (err) => {
+            console.error("❌ Erreur TCP :", err.message);
+        });
     }
 
-    readIndoorTemperature() {}
-    readIndoorMoisture() {}
-    
+    #calculHumidite(Vout) {
+        Vout *= 1000;
+        let humid = -1.91e-9 * Vout ** 3 + 1.33e-5 * Vout ** 2 + 9.56e-3 * Vout - 21.6;
+        return Math.max(0.02, Math.min(humid, 100));
+    }
+
     async readSoilMoisture(sensorId) {
         const options = {
             hostname: this.ip,
@@ -41,81 +34,45 @@ class TCW241 {
                 'Authorization': 'Basic ' + Buffer.from('admin:admin').toString('base64')
             }
         };
-        
+
         return new Promise((resolve, reject) => {
-            const request = http.request(options, (resp) => {
+            const req = http.request(options, (res) => {
                 let data = '';
-                
-                resp.on('data', (chunk) => {
-                    data += chunk;
-                });
-                
-                resp.on('end', () => {
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => {
                     try {
                         const cleanData = data.trim().replace(/^\uFEFF/, '');
-                        const jsonData = JSON.parse(cleanData);
-                        let result;
-                        switch (sensorId) {
-                            case "1":
-                                result = {analogValue: jsonData.Monitor.AI.AI1.value, taux_humidite: this.#calculHumidite(jsonData.Monitor.AI.AI1.value)};
-                                break;
-                            case "2":
-                                result = {analogValue: jsonData.Monitor.AI.AI2.value, taux_humidite: this.#calculHumidite(jsonData.Monitor.AI.AI2.value)};
-                                break;
-                            case "3":
-                                result = {analogValue: jsonData.Monitor.AI.AI3.value, taux_humidite: this.#calculHumidite(jsonData.Monitor.AI.AI3.value)};
-                                break;
-                            default:
-                                throw new Error("Capteur inconnu");
-                        }
-                        resolve(result);
-                    } catch (error) {
-                        reject("Erreur de parsing JSON: " + error);
+                        const json = JSON.parse(cleanData);
+                        const analog = json.Monitor.AI;
+                        const ai = analog[`AI${sensorId}`];
+                        if (!ai) throw new Error("Capteur inconnu");
+                        resolve({
+                            analogValue: ai.value,
+                            taux_humidite: this.#calculHumidite(ai.value)
+                        });
+                    } catch (e) {
+                        reject("Erreur de parsing JSON: " + e.message);
                     }
                 });
             });
-            
-            request.on("error", (err) => {
-                reject("Erreur serveur: " + err.message);
-            });
-            
-            request.end();
+
+            req.on("error", err => reject("Erreur serveur: " + err.message));
+            req.end();
         });
     }
-    
+
+    // Fonctions à compléter
+    readIndoorTemperature() {}
+    readIndoorMoisture() {}
     setHeaterState(enabled) {}
-
-    async setWindowState(opened) {
-        const parameter = opened ? "rof":"ron";
-        const options = {
-            hostname: this.ip,
-            port: this.port,
-            path: `/status.json?${parameter}=8`,
-            method: 'GET',
-            headers: {
-                'Authorization': 'Basic ' + Buffer.from('admin:admin').toString('base64')
-            }
-        };
-        
-        return new Promise((resolve, reject) => {
-            const request = http.request(options, (resp) => {
-                if (resp.statusCode === 200) {
-                    resolve(true);
-                } else {
-                    reject(`Erreur: Code ${resp.statusCode}`);
-                }
-            });
-            
-            request.on("error", (err) => {
-                reject("Erreur serveur: " + err.message);
-            });
-            
-            request.end();
-        });
-    }
-
     enableMisting(enabled) {}
     enableWatering(enabled) {}
+    async setWindowState(opened) {
+        // Exemple : activé/désactivé relais 8
+        const coilIndex = 103; // Hypothèse : relais 8
+        await this.modbusClient.writeSingleCoil(coilIndex, opened);
+        console.log("Fenêtre", opened ? "ouverte" : "fermée");
+    }
 }
 
-module.exports=TCW241;
+module.exports = TCW241;

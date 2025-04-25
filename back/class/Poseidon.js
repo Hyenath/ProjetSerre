@@ -74,6 +74,7 @@ class Poseidon {
             return null;
         }
     }
+    
 }
 
 module.exports = Poseidon;
