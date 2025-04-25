@@ -551,8 +551,12 @@ app.post("/check-access", (req, res) => {
     });
 });
 
+<<<<<<< HEAD
 /*
 //---------------------------------OLD ONE---------------------------------------------------------//
+=======
+
+>>>>>>> 027dda0adb9ccec7d1324d006a5b1812475d7d01
 //--------------------------------Ajouter les logs dans la base---------------------------------------//
 app.post(config.postRFIDLog, async (req, res) => {
     try {
@@ -590,6 +594,7 @@ app.post(config.postRFIDLog, async (req, res) => {
         });
     }
 });
+<<<<<<< HEAD
 */
 app.post(config.postRFIDLog, async (req, res) => {
     const { rfid_id, lastname, firstname } = req.body;
@@ -650,6 +655,41 @@ app.post(config.postRFIDLog, async (req, res) => {
 
   
   
+=======
+/*
+app.post(config.postRFIDLog, async (req, res) => {
+  const { rfid_id, lastname, firstname } = req.body;
+
+  if (!rfid_id) {
+        return res.status(400).json({ success: false, message: "UID manquant !" });
+    }
+
+  try {
+    // Insertion dans TimestampedAccess
+    const [timestampResult] = await connection.execute(
+      'INSERT INTO TimestampedAccess (date) VALUES (NOW())'
+    );
+    const timestampId = timestampResult.insertId;
+
+    // Insertion dans AuthorizedAccess
+    await connection.execute(
+      'INSERT INTO AuthorizedAccess (rfid_id, lastname, firstname, TimestampedAccess_Id) VALUES (?, ?, ?, ?)',
+      [rfid_id, lastname, firstname, timestampId]
+    );
+
+    await connection.end();
+
+    res.send({ success: true, message: "Log": timestampId });
+  } catch (err) {
+    console.error('Erreur MySQL :', err);
+    res.status(500).send('Erreur serveur');
+  }
+});
+*/
+
+
+
+>>>>>>> 027dda0adb9ccec7d1324d006a5b1812475d7d01
 
 
 
