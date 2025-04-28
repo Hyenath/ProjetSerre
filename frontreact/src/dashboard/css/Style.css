@@ -1,62 +1,140 @@
-/* Global */
-body {
+.dashboard-body {
   margin: 0;
-  font-family: "Arial", sans-serif;
-  background-color: #f4f4f4;
-  color: #333;
+  padding: 0;
+  font-family: 'Orbitron', sans-serif; /* Futuriste et net */
+  background-image: url("background-image.png");
+  background-repeat: no-repeat;
+  background-size: cover; /* Très important : l'image couvre toute la zone */
+  background-position: center center; /* Centre l'image */
+  background-attachment: fixed; /* Optionnel : pour un effet "fixe" quand on scrolle */
+  color: #E0F7FA;
+  min-height: 100vh; /* Assure que le fond prend au moins 100% de la hauteur de l'écran */
 }
 
-/* Conteneur principal */
-.container {
-  margin-left: 270px; /* Ajuste pour la sidebar */
+/* Container principal */
+.container-futuristic {
   padding: 40px;
+  animation: fadeIn 0.8s ease-in-out;
 }
 
-/* Dashboard */
-main {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-}
-
-h1 {
-  font-size: 28px;
-  color: #1f1f1f;
+/* Titre principal */
+.title-glow {
+  font-size: 32px;
+  color: #00eaff;
   text-align: center;
+  text-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff;
+  margin-bottom: 20px;
 }
 
-p {
+/* Sous-titre */
+.subtitle {
   font-size: 18px;
   text-align: center;
-  color: #555;
+  color: #B2EBF2;
+  margin-bottom: 40px;
 }
 
-/* Animation d'entrée */
-.container {
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-.chart-container {
+/* Chart futuriste */
+.chart-container.futuristic {
   width: 90%;
   max-width: 800px;
   margin: 40px auto;
   padding: 20px;
-  background: #1f1f1f;
-  box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.85);
-  border-radius: 12px;
-  transition: transform 0.3s ease-in-out;
+  background: linear-gradient(145deg, #1e2a38, #263648);
+  box-shadow: 0px 0px 20px rgba(0, 234, 255, 0.4);
+  border-radius: 20px;
+  transition: transform 0.4s ease-in-out;
 }
 
-.chart-container:hover {
-  transform: scale(1.02);
+.chart-container.futuristic:hover {
+  transform: scale(1.03);
 }
 
+/* Panel de contrôle */
+.control-panel {
+  margin-top: 60px;
+  background: rgba(0, 255, 255, 0.05);
+  padding: 30px;
+  border: 1px solid #00eaff;
+  border-radius: 20px;
+  box-shadow: inset 0 0 10px #00eaff44;
+}
+
+/* Erreur */
+.error-message {
+  margin-top: 20px;
+  color: #ff5252;
+  font-weight: bold;
+}
+
+/* Conteneur pour le graphique et les boutons */
+.dashboard-page .chart-and-buttons {
+  display: flex;
+  justify-content: flex-start; /* Aligne les éléments horizontalement à gauche */
+  align-items: center; /* Centre verticalement */
+  gap: 20px; /* Ajoute un petit espacement entre le graphique et les boutons */
+}
+
+/* Graphique (garde son côté gauche) */
+.dashboard-body .chart {
+  flex: 0 0 auto; /* Empêche le graphique de se redimensionner, garde sa taille */
+  display: flex;
+  justify-content: center; /* Centrer le graphique */
+}
+
+/* Conteneur des boutons, à droite */
+.dashboard-body .buttons-container {
+  display: flex;
+  flex-direction: column; /* Les boutons seront organisés en colonne */
+  gap: 15px; /* Espacement entre les boutons */
+  align-items: flex-start; /* Aligne les boutons à gauche */
+}
+
+/* Optionnel : Pour une meilleure présentation des boutons */
+.dashboard-body .buttons-container .button {
+  width: 200px; /* Fixe la largeur des boutons */
+  background-color: #00eaff; /* Couleur de fond des boutons */
+  border-radius: 10px;
+  padding: 10px;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.dashboard-body .buttons-container .button:hover {
+  background-color: #009fb7; /* Changement de couleur au survol */
+}
+
+
+/* Personnalisation du Tooltip */
+.recharts-tooltip-wrapper {
+  background-color: rgba(0, 0, 0, 0.7) !important; /* Fond sombre pour le tooltip */
+  border-radius: 10px; /* Bords arrondis */
+  padding: 10px; /* Espacement interne */
+  box-shadow: 0 0 15px rgba(0, 234, 255, 0.4); /* Ombre lumineuse */
+}
+
+.recharts-tooltip-item {
+  color: #E0F7FA; /* Couleur du texte */
+  font-family: 'Orbitron', sans-serif; /* Police futuriste */
+  font-size: 16px; /* Taille du texte */
+}
+
+.recharts-tooltip-item-value {
+  font-weight: bold; /* Texte en gras pour la valeur */
+  color: #00eaff; /* Couleur bleue pour la valeur */
+}
+
+.recharts-tooltip-item-name {
+  font-style: italic; /* Italique pour les noms */
+}
+
+/* Animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;

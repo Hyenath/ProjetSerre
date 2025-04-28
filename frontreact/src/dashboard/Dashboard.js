@@ -25,7 +25,7 @@ const Dashboard = () => {
       }
 
       try {
-        const response = await fetch("http://192.168.65.74:3001/check-token", {
+        const response = await fetch("http://192.168.65.74:3001/auth/check-token", {
           method: "POST",
           headers: { "Authorization": `Bearer ${token}` },
         });
@@ -54,7 +54,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchTemperatureData = async () => {
       try {
-        const response = await fetch("http://192.168.65.74:3001/indoor-temperature");
+        const response = await fetch("http://192.168.65.74:3001/outdoor-temperature");
         const data = await response.json();
   
         setTemperatureData(data); // plus besoin de formatter à nouveau
@@ -100,60 +100,87 @@ const Dashboard = () => {
     fetchWaterConso();
   }, []);
 
-  const COLORS = ['#0088FE', '#00C49F'];
-
   return (
-    <div>
-      <Navbar />
-      <main>
-        <div className="container">
-          <h1>Bienvenue sur le tableau de bord de la serre</h1>
-          <p>Voici un aperçu des statistiques de la température intérieur</p>
+    <div className="dashboard-body">
+      <main className="main-futuristic">
+        <div className="container-futuristic">
+          <h1 className="title-glow">🌿 Tableau de bord de la serre</h1>
+          <p className="subtitle">Visualisation en temps réel de la température et de l'eau utilisée</p>
 
-          {/* Graphique de la température */}
-          <div className="chart-container">
+            {/* Graphique de température */}
+          <div className="chart-container futuristic">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={temperatureData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
                 <XAxis dataKey="name" tick={{ fill: "#399196" }} />
                 <YAxis tick={{ fill: "#399196" }} />
-                <Tooltip contentStyle={{ backgroundColor: "#FFF", borderRadius: "10px", boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)" }} />
+                <Tooltip 
+                    contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '10px', padding: '10px', boxShadow: '0 0 15px rgba(0, 234, 255, 0.4)' }} 
+                    itemStyle={{ color: '#E0F7FA', fontFamily: 'Orbitron', fontSize: '16px' }} 
+                    labelStyle={{ fontStyle: 'italic', color: '#E0F7FA' }}
+                  />
                 <Legend verticalAlign="top" align="right" />
                 <Bar dataKey="température" fill="#399196" radius={[10, 10, 0, 0]} barSize={50} animationDuration={1500} />
               </BarChart>
             </ResponsiveContainer>
+
+            {isAuthenticated && (
+              <div className="buttons-container">
+                <BoutonIHM label="Vasistas" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
+              </div>
+            )}
           </div>
 
           {/* Graphique de consommation d'eau */}
-          <div className="dashboard">
-            <h1>Graphe de la consommation d'eau</h1>
-            <PieChart width={300} height={300}>
-              <Pie
-                data={eauType}
-                dataKey="value"
-                nameKey="name"
-                cx="50%" cy="50%"
-                innerRadius={50} outerRadius={80}
-                fill="#8884d8" paddingAngle={5}
-              >
-                {eauType.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-        </div>
+          <div className="chart-container futuristic">
+            <h1 className="title-glow">Graphe de la consommation d'eau</h1>
+            <div className="chart-and-buttons">
+              <div className="chart">
+                <PieChart width={300} height={300}>
+                  <Pie
+                    data={eauType}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%" cy="50%"
+                    innerRadius={50} outerRadius={80}
+                    fill="#8884d8" paddingAngle={5}
+                    animationDuration={1000}  // Animation fluide au chargement
+                  >
+                    {eauType.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={
+                          entry.name === 'Eau de pluie' 
+                          ? `rgba(0, 136, 254, ${entry.value / 100})`
+                          : `rgba(0, 196, 159, ${entry.value / 100})`
+                        }
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '10px', padding: '10px', boxShadow: '0 0 15px rgba(0, 234, 255, 0.4)' }} 
+                    itemStyle={{ color: '#E0F7FA', fontFamily: 'Orbitron', fontSize: '16px' }} 
+                    labelStyle={{ fontStyle: 'italic', color: '#E0F7FA' }}
+                  />
+                  <Legend />
+                </PieChart>
+              </div>
+
+              {isAuthenticated && (
+              <div className="buttons-container">
+                <BoutonIHM label="Electrovanne Pluie" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
+                <BoutonIHM label="Electrovanne Courante" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
+              </div>
+            )}
+            </div>
+          </div>
 
           {/* Interface de contrôle */}
           {isAuthenticated && (
-            <div>
-              <h1>🔧 Interface de contrôle</h1>
-              <BoutonIHM label="Vasistas" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
+            <div className="control-panel">
+              <h1 className="title-glow">🔧 Interface de contrôle</h1>
               <BoutonIHM label="Brumisation" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
               <BoutonIHM label="Arrosage" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
-              <BoutonIHM label="Electrovanne Pluie" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
-              <BoutonIHM label="Electrovanne Courante" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
               <BoutonIHM label="Chauffage" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
             </div>
           )}
@@ -162,6 +189,7 @@ const Dashboard = () => {
         </div>
       </main>
       <Footer />
+      <Navbar />
     </div>
   );
 };

@@ -1,49 +1,40 @@
 const net = require('net');
 
 class Poseidon {
-    constructor(ip, port) {
-        this.ip = ip;
-        this.port = port;
+    constructor() {
+        this.ip = '192.168.65.253';
+        this.port = 502;
     }
 
-    // Lecture de 2 registres (32 bits) à une adresse précise (ex: 36033)
-    async readTemperatureRegister(registerAddress) {
+    async readoutdoorTemperature() {
         return new Promise((resolve, reject) => {
             const client = new net.Socket();
 
-            const unitId = 1;
-            const transactionId = 0x0001;
-            const protocolId = 0x0000;
-            const length = 0x0006;
-            const functionCode = 0x04; // Read Input Registers
-            const quantity = 0x0002;
-
-            // Modbus utilise un décalage de 1 (36033 → adresse 36032 en base 0)
-            const address = registerAddress - 1;
-
-            const request = Buffer.alloc(12);
-            request.writeUInt16BE(transactionId, 0);
-            request.writeUInt16BE(protocolId, 2);
-            request.writeUInt16BE(length, 4);
-            request.writeUInt8(unitId, 6);
-            request.writeUInt8(functionCode, 7);
-            request.writeUInt16BE(address, 8);
-            request.writeUInt16BE(quantity, 10);
+            // Trame hexa modbus brute à envoyer pour recuperer les données du capteurs interieur : '00 00 00 00 00 04 02 04 00 64 00 01'
+            const request = Buffer.from([
+                0x00, 0x00,  // Transaction ID = 0x0000
+                0x00, 0x00,  // Protocol ID    = 0x0000
+                0x00, 0x04,  // Length         = 6 bytes
+                0x02,        // Unit ID        = 2
+                0x04,        // Function Code  = 4 (Read Input Register)
+                0x00, 0x64,  // Register Addr  = 100 (0x0064)
+                0x00, 0x01   // Quantity       = 1 register
+            ]);
 
             client.connect(this.port, this.ip, () => {
                 client.write(request);
             });
 
             client.on('data', (data) => {
-                // Les données commencent à l'octet 9
-                const raw = data.slice(9, 13); // 4 octets
-                // Swapped words + swapped bytes
-                const reordered = Buffer.from([
-                    raw[2], raw[3], raw[0], raw[1]
-                ]);
-                const value = reordered.readFloatBE(0);
+                // Exemple de réponse attendue : header + byte count + 2 octets de données
+                // Les données utiles commencent souvent à l'offset 9
+                const high = data[9];
+                const low = data[10];
+                const value = (high << 8) | low;
+                const outdoorTemperature = value / 10;
+
                 client.destroy();
-                resolve(value);
+                resolve(outdoorTemperature);
             });
 
             client.on('error', (err) => {
@@ -52,29 +43,30 @@ class Poseidon {
         });
     }
 
-    async getSensorsData() {
+    async getoutdoorTemperature() {
         try {
-            const temperature = await this.readTemperatureRegister(36033);
+            const outdoorTemperature = await this.readoutdoorTemperature();
             return {
-                Temperature: temperature,
-                TapWaterLevel: 0, // Placeholder si non implémenté
-                RainWaterLevel: 0 // Placeholder si non implémenté
+                Temperature: outdoorTemperature
             };
         } catch (error) {
             throw new Error("Erreur lors de la récupération des données : " + error);
         }
     }
 
+/*
     async isWaterFrozen() {
         try {
-            const temperature = await this.readTemperatureRegister(36033);
-            return temperature < 0;
+            const outdoorTemperature = await this.readoutdoorTemperature();
+            return outdoorTemperature < 0;
         } catch (error) {
             console.error("Erreur lors de la vérification de l'eau gelée:", error);
             return null;
         }
     }
-    
+*/
+
 }
+
 
 module.exports = Poseidon;

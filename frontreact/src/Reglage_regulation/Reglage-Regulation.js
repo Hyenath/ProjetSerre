@@ -17,7 +17,7 @@ const Regulation = () => {
       const token = localStorage.getItem("token");
 
       try {
-        const response = await fetch("http://192.168.65.74:3001/check-token", {
+        const response = await fetch("http://192.168.65.74:3001/auth/check-token", {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -46,7 +46,7 @@ const Regulation = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch("http://192.168.65.74:3001/getRegParam");
+        const response = await fetch("http://192.168.65.74:3001/gest/getRegParam");
         const data = await response.json();
         console.log("📦 Données reçues :", data); // 🔎 Debug paramètres
 
@@ -74,7 +74,7 @@ const Regulation = () => {
     console.log("Données envoyées : ", { [field]: newValues[field] }); // 🔎 Debug envoi
 
     try {
-      const response = await fetch("http://192.168.65.74:3001/updateRegParam", {
+      const response = await fetch("http://192.168.65.74:3001/gest/updateRegParam", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ [field]: newValues[field] })
@@ -98,7 +98,6 @@ const Regulation = () => {
 
   return (
     <>
-      <Navbar setIsAuthenticated={setIsAuthenticated} />
       <div className="settings-container">
         <h2>📊 Paramètres de la serre</h2>
         {settings ? (
@@ -147,6 +146,7 @@ const Regulation = () => {
         )}
       </div>
       <Footer />
+      <Navbar/>
     </>
   );
 };

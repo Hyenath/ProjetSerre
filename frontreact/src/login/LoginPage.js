@@ -37,7 +37,7 @@ const LoginPage = () => {
     const userData = { username, password };
 
     // Envoi des données au serveur avec fetch
-    fetch('http://192.168.65.74:3001/login', {
+    fetch('http://192.168.65.74:3001/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -36,6 +36,18 @@ class TCW241 {
         }
     }
 
+    async #getHeaterState() {
+        try {
+            const result = await this.modbusClient.readCoils(102, 1);
+            const state = result.response._body._valuesAsArray[0];
+            console.log(`Relais ${103} état :`, state ? 'ON' : 'OFF');
+            return state;
+        } catch (error) {
+            console.error(`Erreur lors de la lecture du relais ${103} :`, error);
+            return null;
+        }
+    }
+
     async readSoilMoisture(sensorId) {
         const options = {
             hostname: this.ip,
@@ -76,7 +88,14 @@ class TCW241 {
     // Fonctions à compléter
     readIndoorTemperature() {}
     readIndoorMoisture() {}
-    setHeaterState(enabled) {}
+    async setHeaterState(enabled) {
+        try {
+            const isEnabled = await this.#getHeaterState();
+        } catch (error) {
+            console.error("Erreur Modbus :", error);
+            return { success: false, error: error.message };
+        }
+    }
     enableMisting(enabled) {}
     enableWatering(enabled) {}
     async setWindowState(opened) {
@@ -93,7 +112,7 @@ class TCW241 {
             return { success: true, message: `Vasistas déjà ${opened ? "ouvert" : "fermé"}` };
     
         } catch (error) {
-            console.error("Erreur Modbus serverGestion :", error);
+            console.error("Erreur Modbus :", error);
             return { success: false, error: error.message };
         }
     }

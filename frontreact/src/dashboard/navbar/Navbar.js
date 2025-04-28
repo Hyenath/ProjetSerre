@@ -18,7 +18,7 @@ const Navbar = () => {
       }
 
       try {
-        const response = await fetch("http://192.168.65.74:3001/check-token", {
+        const response = await fetch("http://192.168.65.74:3001/auth/check-token", {
           method: "POST",
           headers: { "Authorization": `Bearer ${token}` },
         });

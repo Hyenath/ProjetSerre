@@ -27,7 +27,7 @@ const NewUser = () => {
         const token = localStorage.getItem("token");
   
         try {
-          const response = await fetch("http://192.168.65.74:3001/check-token", {
+          const response = await fetch("http://192.168.65.74:3001/auth/check-token", {
             method: "POST",
             headers: { "Authorization": `Bearer ${token}` },
           });
@@ -59,7 +59,7 @@ const NewUser = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://192.168.65.74:3001/register", {
+      const response = await fetch("http://192.168.65.74:3001/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -83,8 +83,6 @@ const NewUser = () => {
 
   return (
     <div className="body_new_user">
-    <div>
-      <Navbar />
       <main>
         <div className="container_new_user">
           <h1>Créer un Nouvel Utilisateur</h1>
@@ -140,7 +138,7 @@ const NewUser = () => {
         </div>
       </main>
       <Footer />
-    </div>
+      <Navbar />
     </div>
   );
 };
