@@ -225,6 +225,7 @@ app.post(config.verifytoken, (req, res) => {
 //--------------------------------Insérer Valeurs Capteurs dans la base---------------------------------------//
 app.post(config.add, checkToken, async (req, res) => {
     try {
+        const outdoor_temperature = await poseidon.readoutdoorTemperature();
         // Définition des champs attendus avec leurs contraintes
         const Data = {
             water_network: { allowedValues: ["rain", "tap"] },
@@ -246,19 +247,6 @@ app.post(config.add, checkToken, async (req, res) => {
         const tab = [];
 
         console.log("Données reçues :", req.body);
-
-        //--------------------------------------------------------------PROTOTYPE Envoi données capteur----------------------------------------------------//
-        /*
-        // Route pour obtenir les données des capteurs
-        try {
-            const sensordata = await poseidon.getSensorsData();
-            res.json(sensordata);
-            console.log("Sensor's Data:", sensordata);
-        } catch (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Erreur lors de la récupération des données' });
-        }
-        */
 
         // Vérification des champs et conversion des valeurs
         for (const field in Data) {
@@ -343,7 +331,6 @@ app.post(config.add, checkToken, async (req, res) => {
         });
     }
 });
-
 
 //--------------------------------Récupérer les paramètres de régulation---------------------------------------//
 app.get(config.getRegParam, async (req, res) => {
@@ -638,7 +625,7 @@ app.post(config.postRFIDLog, async (req, res) => {
                 }
             );
         });
-
+        
         // Réponse indiquant que le log a été ajouté avec succès
         res.json({ success: true, message: `Log ajouté avec ID ${timestampId}` });
 
@@ -649,9 +636,26 @@ app.post(config.postRFIDLog, async (req, res) => {
 });
 
   
-  
+//Nathan (TEST Interroger RFID)
+/*
+const axios = require('axios');
 
+async function fetchUID() {
+  try {
+    const response = await axios.get('http://192.168.65.240', {
+      auth: {
+        username: 'TON_USER',  // ➔ remplace par ton vrai login
+        password: 'TON_MDP'     // ➔ remplace par ton vrai mot de passe
+      }
+    });
+    console.log("UID reçu :", response.data);
+  } catch (err) {
+    console.error("Erreur de requête :", err);
+  }
+}
 
+fetchUID();
+*/
 
 
 
@@ -667,22 +671,10 @@ app.get("/etat-vasistas", (req, res) => {
     res.json({ Vasistas: vasistas });
 });
 
-// Route pour obtenir les données des capteurs
-app.get('/api/sensors', async (req, res) => {
-    try {
-        const temperature = await poseidon.readTemperatureRegister(36033);
-        res.json({ temperature }); // Objet avec une clé explicite
-        console.log("Température reçue:", temperature);
-    } catch (err) {
-        console.error("Erreur côté serveur Poseidon :", err);
-        res.status(500).json({ error: 'Erreur lors de la récupération des données' });
-    }
-});
-
-app.get("/indoor-temperature", checkToken, async (req, res) => {
+app.get("/outdoor-temperature", checkToken, async (req, res) => {
     try {
       const sql = `
-        SELECT indoor_temperature, date 
+        SELECT outdoor_temperature, date 
         FROM EventsRegulation
         ORDER BY date ASC
         LIMIT 10
@@ -699,7 +691,7 @@ app.get("/indoor-temperature", checkToken, async (req, res) => {
           name: new Date(row.date).toLocaleString("fr-FR", {
              day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
           }),
-          température: row.indoor_temperature
+          température: row.outdoor_temperature
         }));
   
         res.json(data);
