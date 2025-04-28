@@ -1,26 +1,12 @@
 const express = require('express');
 const mysql = require('mysql2');
-const rateLimit = require('express-rate-limit');
 const checkToken = require('./Middlewares/check-token.js');
-//Gestion des Classes
-
-    //Poseidon
-    const Poseidon = require('./class/Poseidon.js');
-    const poseidon = new Poseidon('192.168.65.253', 502);
-    //
-
-//Gestion des fichiers
-const fs = require('fs');
-const path = require('path');
-//
+const cors = require('cors');
 
 //Fichiers JSON
-const config = require('./config.json');
+const db = require('./config/db');
 //
 
-const bcrypt = require('bcryptjs');
-const cors = require('cors');
-const jwt = require('jsonwebtoken');
 const app = express();
 
 //Pour lancer les serveurs, se référer au package.json du frontreact//
@@ -30,7 +16,6 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-const db = require('./config/db');
 
 //------------------------------------------------------------AUTHENTIFICATION----------------------------------------------------------------//
 const authRoutes = require('./Routes/auth');

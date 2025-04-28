@@ -2,6 +2,7 @@ const express = require('express');
 
 //Fichiers JSON
 const config = require('../config.json');
+const db = require('../config/db');
 //
 
 const app = express();
@@ -26,7 +27,7 @@ app.post(config.postRFIDLog, async (req, res) => {
                     console.error("Erreur lors de l'insertion dans TimestampedAccess : ", err);
                     reject(err);
                 } else {
-                    console.log("Timestamped de l'accès autorisé inséré avec succès pour l'ID : ", result.insertId);
+                    console.log("Timestamped identifié avec l'ID : ", result.insertId);
                     resolve(result);
                 }
             });
