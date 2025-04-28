@@ -226,6 +226,10 @@ app.post(config.verifytoken, (req, res) => {
 app.post(config.add, checkToken, async (req, res) => {
     try {
         const outdoor_temperature = await poseidon.readoutdoorTemperature();
+
+        // Ajouter la température extérieure à req.body
+        req.body.outdoor_temperature = outdoor_temperature;
+
         // Définition des champs attendus avec leurs contraintes
         const Data = {
             water_network: { allowedValues: ["rain", "tap"] },
@@ -245,7 +249,6 @@ app.post(config.add, checkToken, async (req, res) => {
         };
 
         const tab = [];
-
         console.log("Données reçues :", req.body);
 
         // Vérification des champs et conversion des valeurs
@@ -331,6 +334,7 @@ app.post(config.add, checkToken, async (req, res) => {
         });
     }
 });
+
 
 //--------------------------------Récupérer les paramètres de régulation---------------------------------------//
 app.get(config.getRegParam, async (req, res) => {
