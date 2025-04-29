@@ -112,7 +112,12 @@ app.post(config.postRFIDLog, async (req, res) => {
             throw new Error("Impossible de récupérer l'insertId pour TimestampedAccess.");
         }
 
-        res.json({ success: true, message: `Accès enregistré pour UID ${rfid_id}, timestamp ID ${timestampResult.insertId}` });
+        // Réponse avec accessGranted pour l'Arduino
+        res.json({
+            success: true,
+            accessGranted: true,
+            message: `Accès autorisé pour UID ${rfid_id}, timestamp ID ${timestampResult.insertId} -> enregistrement en base effectué`
+        });
 
     } catch (err) {
         console.error("Erreur lors de l'enregistrement RFID :", err);
