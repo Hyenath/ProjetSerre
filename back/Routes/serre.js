@@ -1,5 +1,5 @@
 const express = require('express');
-const checkToken = require('./Middlewares/check-token.js');
+const checkToken = require('../Middlewares/check-token.js');
 
 //Gestion des Classes
 
@@ -10,8 +10,8 @@ const checkToken = require('./Middlewares/check-token.js');
 //
 
 //Fichiers JSON
-const WaterManager = require('./class/WaterManager.js');
-const db = require('./config/db');
+const WaterManager = require('../class/WaterManager.js');
+const db = require('../config/db');
 //
 
 const app = express();

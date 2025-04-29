@@ -1,6 +1,5 @@
 const express = require('express');
 const mysql = require('mysql2');
-const checkToken = require('./Middlewares/check-token.js');
 const cors = require('cors');
 
 //Fichiers JSON
