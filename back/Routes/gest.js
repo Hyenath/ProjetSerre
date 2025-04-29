@@ -18,7 +18,7 @@ const path = require('path');
 const config = require('../config.json');
 const RegParam = require('./RegParam/RegParam.json');
 const RegParamSave = require('./RegParam/RegParamSave.json');
-const db = require('../config/db');
+const db = require('../DataBase/db.js');
 //
 
 const app = express();

@@ -1,10 +1,9 @@
 const express = require('express');
-const mysql = require('mysql2');
 const cors = require('cors');
 
 //Fichiers JSON
-const WaterManager = require('./class/WaterManager.js');
-const db = require('./config/db');
+const config = require('./config.json');
+const db = require('./DataBase/db');
 //
 
 const app = express();

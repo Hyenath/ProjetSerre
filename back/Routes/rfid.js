@@ -2,7 +2,7 @@ const express = require('express');
 
 //Fichiers JSON
 const config = require('../config.json');
-const db = require('../config/db');
+const db = require('../DataBase/db');
 //
 
 const app = express();
@@ -78,7 +78,7 @@ app.post(config.postRFIDLog, async (req, res) => {
     }
 
     try {
-        // 1️⃣ Vérifier si le rfid_id existe dans AuthorizedAccess
+        // Vérifier si le rfid_id existe dans AuthorizedAccess
         const authorizedUser = await new Promise((resolve, reject) => {
             db.query('SELECT * FROM AuthorizedAccess WHERE rfid_id = ?', [rfid_id], (err, results) => {
                 if (err) {
@@ -95,7 +95,7 @@ app.post(config.postRFIDLog, async (req, res) => {
             return res.status(403).json({ success: false, message: "UID non autorisé !" });
         }
 
-        // 2️⃣ UID trouvé : alors insérer dans TimestampedAccess
+        // UID trouvé : alors insérer dans TimestampedAccess
         const timestampResult = await new Promise((resolve, reject) => {
             db.query('INSERT INTO TimestampedAccess (date) VALUES (NOW())', (err, result) => {
                 if (err) {

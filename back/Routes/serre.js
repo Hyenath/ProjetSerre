@@ -10,8 +10,9 @@ const checkToken = require('../Middlewares/check-token.js');
 //
 
 //Fichiers JSON
+const config = require('../config.json');
 const WaterManager = require('../class/WaterManager.js');
-const db = require('../config/db');
+const db = require('../DataBase/db.js');
 //
 
 const app = express();
