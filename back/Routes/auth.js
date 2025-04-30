@@ -29,7 +29,7 @@ app.use(globalLimiter);
 
 //-------------------------------LOGIN----------------------------------//
 
-app.post(config.login, loginLimiter, checkToken, async (req, res) => {
+app.get(config.login, loginLimiter, checkToken, async (req, res) => {
     const { username, password } = req.body;
 
     const sql = 'SELECT * FROM UserData WHERE username = ?';
