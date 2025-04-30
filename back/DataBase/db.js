@@ -1,5 +1,4 @@
 const mysql = require('mysql2');
-const config = require('../config.json'); // adapte le chemin si besoin
 
 //Fichiers JSON
 const config = require('../config.json');
