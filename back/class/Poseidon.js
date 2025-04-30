@@ -6,19 +6,20 @@ class Poseidon {
         this.port = 502;
     }
 
+// ---------------------------------------- CAPTEUR TEMPERATURE EXTERIEUR : ----------------------------------------
     async readoutdoorTemperature() {
         return new Promise((resolve, reject) => {
             const client = new net.Socket();
 
-            // Trame hexa modbus brute à envoyer pour recuperer les données du capteurs interieur : '00 00 00 00 00 04 02 04 00 64 00 01'
+            // Trame hexa modbus brute à envoyer pour recuperer les données du capteurs exterieur : '00 00 00 00 00 04 02 04 00 64 00 01'
             const request = Buffer.from([
-                0x00, 0x00,  // Transaction ID = 0x0000
-                0x00, 0x00,  // Protocol ID    = 0x0000
-                0x00, 0x04,  // Length         = 6 bytes
-                0x02,        // Unit ID        = 2
-                0x04,        // Function Code  = 4 (Read Input Register)
-                0x00, 0x64,  // Register Addr  = 100 (0x0064)
-                0x00, 0x01   // Quantity       = 1 register
+                0x00, 0x00,  // Transaction ID
+                0x00, 0x00,  // Protocol ID
+                0x00, 0x04,  // Length
+                0x02,        // Unit ID
+                0x04,        // Function Code
+                0x00, 0x64,  // Register Addr = 100 (0x0064)
+                0x00, 0x01   // Quantity
             ]);
 
             client.connect(this.port, this.ip, () => {
@@ -26,8 +27,6 @@ class Poseidon {
             });
 
             client.on('data', (data) => {
-                // Exemple de réponse attendue : header + byte count + 2 octets de données
-                // Les données utiles commencent souvent à l'offset 9
                 const high = data[9];
                 const low = data[10];
                 const value = (high << 8) | low;
@@ -38,7 +37,7 @@ class Poseidon {
             });
 
             client.on('error', (err) => {
-                reject("Erreur Modbus TCP: " + err.message);
+                reject("Erreur Modbus TCP (Capteur Temperature Exterieur): " + err.message);
             });
         });
     }
@@ -54,7 +53,7 @@ class Poseidon {
         }
     }
 
-/*
+    // VERIFICATION POUR SAVOIR SI L'EAU EST GELE :
     async isWaterFrozen() {
         try {
             const outdoorTemperature = await this.readoutdoorTemperature();
@@ -64,7 +63,163 @@ class Poseidon {
             return null;
         }
     }
-*/
+
+
+// ---------------------------------------- CAPTEUR DU NIVEAU DE L'EAU DU BIDON : ----------------------------------------
+    async readrainWaterLevel() {
+        return new Promise((resolve, reject) => {
+            const client = new net.Socket();
+
+            const adrs1 = 0x00 ; // Register Addr 0000 puisque je n'ai pas le capteur en réel (29/04/2025)
+            const adrs2 = 0x00 ;
+
+            // Trame hexa modbus brute à envoyer pour recuperer les données du capteurs interieur : '00 00 00 00 00 04 02 04 XX XX 00 01'
+            const request = Buffer.from([
+                0x00, 0x00,
+                0x00, 0x00,
+                0x00, 0x04,
+                0x02,
+                0x04,           // Function Code  = 4 (Read Input Register)
+                adrs1, adrs2,   // Register Addr  = JE NE SAIS PAS ENCORE (29/04/2025)
+                0x00, 0x01   
+            ]);
+
+            client.connect(this.port, this.ip, () => {
+                client.write(request);
+            });
+
+            client.on('data', (data) => {
+                const high = data[9];
+                const low = data[10];
+                const value = (high << 8) | low;
+                const rainWaterLevel = value ;
+
+                client.destroy();
+                resolve(rainWaterLevel);
+            });
+
+            client.on('error', (err) => {
+                reject("Erreur Modbus TCP (Capteur Niveau d'eau): " + err.message);
+            });
+        });
+    }
+
+    async getrainWaterLevel() {
+        try {
+            const rainWaterLevel = await this.readrainWaterLevel();
+            return {
+                RainWaterLevel: rainWaterLevel
+            };
+        } catch (error) {
+            throw new Error("Erreur lors de la récupération des données : " + error);
+        }
+    }
+
+// ---------------------------------------- CAPTEUR DEBITMETRE (GESTION CONSOMATION D'EAU) : ----------------------------------------
+    
+    // -------------------- CAPTEUR DEBITMETRE RAIN (EAU DE PLUIE) : --------------------
+    async readrainWaterUsed() {
+        return new Promise((resolve, reject) => {
+            const client = new net.Socket();
+
+            const adrs1 = 0x00 ; // Register Addr 0000 puisque je n'ai pas le capteur en réel (29/04/2025)
+            const adrs2 = 0x00 ;
+
+            // Trame hexa modbus brute à envoyer pour recuperer les données du capteurs interieur : '00 00 00 00 00 04 02 04 XX XX 00 01'
+            const request = Buffer.from([
+                0x00, 0x00,
+                0x00, 0x00,
+                0x00, 0x04,
+                0x02,
+                0x04,           // Function Code  = 4 (Read Input Register)
+                adrs1, adrs2,   // Register Addr  = JE NE SAIS PAS ENCORE (29/04/2025)
+                0x00, 0x01   
+            ]);
+
+            client.connect(this.port, this.ip, () => {
+                client.write(request);
+            });
+
+            client.on('data', (data) => {
+                const high = data[9];
+                const low = data[10];
+                const value = (high << 8) | low;
+                const rainWaterUsed = value ;
+
+                client.destroy();
+                resolve(rainWaterUsed);
+            });
+
+            client.on('error', (err) => {
+                reject("Erreur Modbus TCP (Capteur Debitmetre Rain): " + err.message);
+            });
+        });
+    }
+
+    async getrainWaterUsed() {
+        try {
+            const rainWaterUsed = await this.readrainWaterUsed();
+            return {
+                RainWaterUsed: rainWaterUsed
+            };
+        } catch (error) {
+            throw new Error("Erreur lors de la récupération des données : " + error);
+        }
+    }
+
+    // -------------------- CAPTEUR DEBITMETRE TAP (EAU COURANTE) : --------------------
+    async readtapWaterUsed() {
+        return new Promise((resolve, reject) => {
+            const client = new net.Socket();
+
+            const adrs1 = 0x00 ; // Register Addr 0000 puisque je n'ai pas le capteur en réel (29/04/2025)
+            const adrs2 = 0x00 ;
+
+            // Trame hexa modbus brute à envoyer pour recuperer les données du capteurs interieur : '00 00 00 00 00 04 02 04 XX XX 00 01'
+            const request = Buffer.from([
+                0x00, 0x00,
+                0x00, 0x00,
+                0x00, 0x04,
+                0x02,
+                0x04,           // Function Code  = 4 (Read Input Register)
+                adrs1, adrs2,   // Register Addr  = JE NE SAIS PAS ENCORE (29/04/2025)
+                0x00, 0x01   
+            ]);
+
+            client.connect(this.port, this.ip, () => {
+                client.write(request);
+            });
+
+            client.on('data', (data) => {
+                const high = data[9];
+                const low = data[10];
+                const value = (high << 8) | low;
+                const tapWaterUsed = value ;
+
+                client.destroy();
+                resolve(tapWaterUsed);
+            });
+
+            client.on('error', (err) => {
+                reject("Erreur Modbus TCP (Capteur Debitmetre Rain): " + err.message);
+            });
+        });
+    }
+
+    async gettapWaterUsed() {
+        try {
+            const tapWaterUsed = await this.readtapWaterUsed();
+            return {
+                TapWaterUsed: tapWaterUsed
+            };
+        } catch (error) {
+            throw new Error("Erreur lors de la récupération des données : " + error);
+        }
+    }
+
+
+
+
 
 }
 

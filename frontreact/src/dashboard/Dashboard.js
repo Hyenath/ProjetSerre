@@ -7,6 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, PieChart, Pie, Cell,
 } from "recharts";
 import "./css/Style.css";
+import SerreInfo from './SerreInfo';
 
 const Dashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -54,7 +55,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchTemperatureData = async () => {
       try {
-        const response = await fetch("http://192.168.65.74:3001/outdoor-temperature");
+        const response = await fetch("http://192.168.65.74:3001/serre/outdoor-temperature");
         const data = await response.json();
   
         setTemperatureData(data); // plus besoin de formatter à nouveau
@@ -71,7 +72,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchWaterConso = async () => {
       try {
-        const response = await fetch("http://192.168.65.74:3001/water-conso");
+        const response = await fetch("http://192.168.65.74:3001/serre/water-conso");
         const data = await response.json();
   
         const total = data.rain + data.tap;
@@ -126,7 +127,7 @@ const Dashboard = () => {
 
             {isAuthenticated && (
               <div className="buttons-container">
-                <BoutonIHM label="Vasistas" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
+                <BoutonIHM label="Vasistas" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
               </div>
             )}
           </div>
@@ -168,8 +169,8 @@ const Dashboard = () => {
 
               {isAuthenticated && (
               <div className="buttons-container">
-                <BoutonIHM label="Electrovanne Pluie" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
-                <BoutonIHM label="Electrovanne Courante" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
+                <BoutonIHM label="Electrovanne Pluie" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
+                <BoutonIHM label="Electrovanne Courante" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
               </div>
             )}
             </div>
@@ -179,13 +180,14 @@ const Dashboard = () => {
           {isAuthenticated && (
             <div className="control-panel">
               <h1 className="title-glow">🔧 Interface de contrôle</h1>
-              <BoutonIHM label="Brumisation" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
-              <BoutonIHM label="Arrosage" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
-              <BoutonIHM label="Chauffage" apiEndpoint="http://192.168.65.74:3001/test-vasistas" apiEtat="http://192.168.65.74:3001/etat-vasistas" />
+              <BoutonIHM label="Brumisation" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
+              <BoutonIHM label="Arrosage" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
+              <BoutonIHM label="Chauffage" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
             </div>
           )}
 
           {errorMessage && <p className="error-message">{errorMessage}</p>}
+          <SerreInfo />
         </div>
       </main>
       <Footer />

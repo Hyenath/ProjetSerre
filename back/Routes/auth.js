@@ -29,7 +29,7 @@ app.use(globalLimiter);
 
 //-------------------------------LOGIN----------------------------------//
 
-app.get(config.login, loginLimiter, checkToken, async (req, res) => {
+app.post(config.login, loginLimiter, checkToken, async (req, res) => {
     const { username, password } = req.body;
 
     const sql = 'SELECT * FROM UserData WHERE username = ?';
@@ -113,16 +113,6 @@ app.post(config.register, async (req, res) => {
             if (err) {
                 return res.status(500).json({ message: 'Erreur lors de l\'inscription dans la base de données' });
             }
-
-            // Création du token JWT
-            const token = jwt.sign(
-                { id: result.insertId, email: mail },
-                config.key,
-                { expiresIn: '1h' }
-            );
-
-            // Réponse avec succès et token
-            res.status(201).json({ message: 'Inscription réussie', userId: result.insertId, mail, token });
         });
     });
 });
