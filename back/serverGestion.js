@@ -21,6 +21,18 @@ app.post('/route', (req,res) => {
     return res.status(200).json({ message : 'ok'});
 })
 
+app.post('/setHeaterState', async (req, res) => {
+    const { state } = req.body;
+
+    if (state !== "on" && state !== "off") return res.status(400).json({ message: "État invalide, utilisez 'on' ou 'off'" });
+
+    const opened = state === "on";
+    const result = await tcw.setHeaterState(opened);
+
+    if (!result.success) return res.status(500).json({ message: result.error });
+    return res.status(200).json({ message: result.message });
+});
+
 app.post('/setWindowState', async (req, res) => {
     const { state } = req.body;
 

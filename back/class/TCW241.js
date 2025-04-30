@@ -23,31 +23,7 @@ class TCW241 {
         let humid = -1.91e-9 * Vout ** 3 + 1.33e-5 * Vout ** 2 + 9.56e-3 * Vout - 21.6;
         return Math.max(0.02, Math.min(humid, 100));
     }
-    
-    async #getVasistasState() {
-        try {
-            const result = await this.modbusClient.readCoils(103, 1);
-            const state = result.response._body._valuesAsArray[0];
-            console.log(`Relais ${103} état :`, state ? 'ON' : 'OFF');
-            return state;
-        } catch (error) {
-            console.error(`Erreur lors de la lecture du relais ${103} :`, error);
-            return null;
-        }
-    }
-
-    async #getHeaterState() {
-        try {
-            const result = await this.modbusClient.readCoils(102, 1);
-            const state = result.response._body._valuesAsArray[0];
-            console.log(`Relais ${103} état :`, state ? 'ON' : 'OFF');
-            return state;
-        } catch (error) {
-            console.error(`Erreur lors de la lecture du relais ${103} :`, error);
-            return null;
-        }
-    }
-
+   
     async readSoilMoisture(sensorId) {
         const options = {
             hostname: this.ip,
@@ -90,9 +66,20 @@ class TCW241 {
     readIndoorMoisture() {}
     async setHeaterState(enabled) {
         try {
-            const isEnabled = await this.#getHeaterState();
+            const result = await this.modbusClient.readCoils(102, 1);
+            console.log(result.response._body._valuesAsArray[0]);
+            const state = result.response._body._valuesAsArray[0];
+            const isEnabled = state === 1;
+            console.log(`Relais ${102} état :`, isEnabled);
+            //const isEnabled = await this.#getHeaterState();
+            if (isEnabled !== true && isEnabled !== false) throw new Error("Impossible de lire l'état actuel du chauffage 5");
+            if (isEnabled !== enabled) {
+                await this.modbusClient.writeSingleCoil(102, enabled);
+                return { success: true, message: `Chauffage ${enabled ? "allumé" : "éteint"}` };
+            }
+            return { success: true, message: `Vasistas déjà ${enabled ? "allumé" : "éteint"}` };
         } catch (error) {
-            console.error("Erreur Modbus :", error);
+            console.error("Erreur :", error);
             return { success: false, error: error.message };
         }
     }
@@ -100,9 +87,11 @@ class TCW241 {
     enableWatering(enabled) {}
     async setWindowState(opened) {
         try {
-            const isOpen = await this.#getVasistasState();
+            const result = await this.modbusClient.readCoils(103, 1);
+            const state = result.response._body._valuesAsArray[0];
+            const isOpen = state ? true : false;           
     
-            if (isOpen === null) throw new Error("Impossible de lire l'état actuel du vasistas");
+            if (isOpen !== true && isOpen !== false) throw new Error("Impossible de lire l'état actuel du vasistas");
     
             if (isOpen !== opened) {
                 await this.modbusClient.writeSingleCoil(103, opened);
