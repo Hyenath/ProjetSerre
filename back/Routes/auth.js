@@ -124,7 +124,7 @@ app.post(config.register, async (req, res) => {
 
 //------------------------------------verif token---------------------------------------------//
 
-app.get(config.verifytoken, (req, res) => {
+app.get("/check-token", (req, res) => {
     const authHeader = req.headers["authorization"];
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
