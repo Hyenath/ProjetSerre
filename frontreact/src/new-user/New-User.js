@@ -57,6 +57,7 @@ const NewUser = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Form data:", formData);
 
     try {
       const response = await fetch("http://192.168.65.74:3001/auth/register", {
