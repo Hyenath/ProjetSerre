@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require("cors");
 const bodyParser = require('body-parser');
 
-const WaterManager = require('./WaterManager'); // Suppression du dossier "class/" si non nécessaire
+const WaterManager = require('./class/WaterManager'); // Suppression du dossier "class/" si non nécessaire
 
 const app = express();
 app.use(bodyParser.json());
@@ -15,7 +15,7 @@ const mainWaterManager = {
 // Route pour récupérer les données des capteurs
 app.get('/poseidon/sensors', async (req, res) => {
     try {
-        const sensorsData = await mainWaterManager.waterManager.poseidon.getSensorsData();
+        const sensorsData = await mainWaterManager.waterManager.poseidon.getoutdoorTemperature();
         return res.json(sensorsData);
     } catch (error) {
         console.error("Erreur dans /poseidon/sensors:", error);
@@ -57,7 +57,7 @@ app.get('/poseidon/temperature/outdoor', async (req, res) => {
 });
 
 // Lancement du serveur
-const PORT = 3000;
+const PORT = 3002;
 app.listen(PORT, () => {
     console.log(`Serveur API Poseidon lancé sur http://localhost:${PORT}`);
 });
