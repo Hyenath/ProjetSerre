@@ -21,48 +21,53 @@ app.post('/route', (req,res) => {
     return res.status(200).json({ message : 'ok'});
 })
 
+app.post('/setWatering', async (req, res) => {
+    const result = await tcw.enableWatering();
+    if (!result.success) return res.status(500).json({ message: result.error });
+    return res.status(200).json({ message: result.message });
+});
+
+app.post('/setMisting', async (req, res) => {
+    const result = await tcw.enableMisting();
+    if (!result.success) return res.status(500).json({ message: result.error });
+    return res.status(200).json({ message: result.message });
+});
+
 app.post('/setHeaterState', async (req, res) => {
-    const { state } = req.body;
-
-    if (state !== "on" && state !== "off") return res.status(400).json({ message: "État invalide, utilisez 'on' ou 'off'" });
-
-    const opened = state === "on";
-    const result = await tcw.setHeaterState(opened);
-
+    const result = await tcw.setHeaterState();
     if (!result.success) return res.status(500).json({ message: result.error });
     return res.status(200).json({ message: result.message });
 });
 
 app.post('/setWindowState', async (req, res) => {
-    const { state } = req.body;
-
-    if (state !== "open" && state !== "close") {
-        return res.status(400).json({ message: "État invalide, utilisez 'open' ou 'close'" });
-    }
-
-    const opened = state === "open";
-    const result = await tcw.setWindowState(opened);
-
-    if (!result.success) {
-        return res.status(500).json({ message: result.error });
-    }
-
+    const result = await tcw.setWindowState();
+    if (!result.success) return res.status(500).json({ message: result.error });
     return res.status(200).json({ message: result.message });
 });
 
-// Route pour récupérer la valeur d'humidité du sol via la carte TCW241
 app.get('/getHumidite', async (req, res) => {
     const { idCapteur } = req.body;
-
     if (!idCapteur) return res.status(400).json({ message: "Capteur non spécifié" });
     if(!["1", "2", "3"].includes(idCapteur)) return res.status(400).json({ message: "Capteur inconnu" });
-    
     try {
         const value = await tcw.readSoilMoisture(idCapteur);
         res.json(value);
     } catch (error) {
         console.error("Erreur:", error);
         res.status(500).json({ message: "Erreur lors de la récupération des données" });
+    }
+});
+
+app.post('/activeRelay', async (req, res) => {
+    const { relay } = req.body;
+    if (!relay) return res.status(400).json({ message: "Relais non spécifié" });
+    if(!["1", "2", "3", "4"].includes(relay)) return res.status(400).json({ message: "Relais inconnu" });
+    try {
+        await tcw.activateRelay(relay);
+        res.json({ message: `Relais ${relay} activé` });
+    } catch (error) {
+        console.error("Erreur:", error);
+        res.status(500).json({ message: "Erreur lors de l'activation du relais" });
     }
 });
 
