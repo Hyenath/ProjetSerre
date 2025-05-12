@@ -31,7 +31,7 @@
       res.json({ Vasistas: vasistas });
   });
 
-  app.get("/outdoor-temperature", checkToken, async (req, res) => {
+  app.get("/outdoor-temperature", async (req, res) => {
       try {
         const sql = `
           SELECT outdoor_temperature, date 
@@ -73,7 +73,7 @@
       }
     });
 
-    app.get("/water-conso", checkToken, async (req, res) => {
+    app.get("/water-conso", async (req, res) => {
       try {
         const sql = `
           SELECT rain_water_consumption, tap_water_consumption 
