@@ -4,7 +4,8 @@ import LoginPage from "./login/LoginPage";
 import Dashboard from "./dashboard/Dashboard";
 import SerreInfo from "./dashboard/SerreInfo"; 
 import NewUser from "./new-user/New-User";
-import UpdateUser from "./adminGest/UpdateUser.js";
+import UpdateUser from "./adminGest/UpdateUser";
+import BasePurge from "./adminGest/BasePurge";
 import Regulation from "./Reglage_regulation/Reglage-Regulation";
 
 const App = () => {
@@ -16,6 +17,7 @@ const App = () => {
         <Route path="/new-user" element={<NewUser />} />
         <Route path="/regulation" element={<Regulation />} />
         <Route path="/update-user" element={<UpdateUser />} />
+        <Route path="/base-purge" element={<BasePurge />} />
         <Route path="/serre-info" element={<SerreInfo />} />
       </Routes>
     </Router>
