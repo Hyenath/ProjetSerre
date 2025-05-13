@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const checkToken = require('../Middlewares/check-token.js');
 
 //Gestion des Classes
@@ -314,17 +315,54 @@ app.put(config.updateRegParam, checkToken, async (req, res) => {
 
 
 //---------------------------------------Purger la base---------------------------------------//
-app.delete(config.basePurge, checkToken, async (req, res) => {
-    const sql = "DELETE FROM SomeTable WHERE ..."; // ⚠️ Personnalise selon tes besoins
-
-    db.query(sql, (err, result) => {
+app.post(config.basePurge, checkToken, async (req, res) => {
+    const { password } = req.body;
+    const userId = req.userId;
+  
+    if (!password) {
+      return res.status(400).json({ message: "Mot de passe requis." });
+    }
+  
+    const sql = "SELECT password FROM UserData WHERE id = ?";
+    db.query(sql, [userId], async (err, results) => {
       if (err) {
-        return res.status(500).json({ message: "Erreur serveur lors de la purge" });
+        return res.status(500).json({ message: "Erreur serveur." });
       }
   
-      res.status(200).json({ message: "Données supprimées avec succès." });
+      if (results.length === 0) {
+        return res.status(404).json({ message: "Utilisateur non trouvé." });
+      }
+  
+      const hashedPassword = results[0].password;
+  
+      const isMatch = await bcrypt.compare(password, hashedPassword);
+
+      if (!isMatch) {
+        return res.status(401).json({ message: "Mot de passe incorrect." });
+      }
+  
+      const purgeQueries = [
+        "DELETE FROM TimestampedAccess",
+        "DELETE FROM EventsRegulation" 
+      ];
+  
+      for (const query of purgeQueries) {
+        try {
+          await new Promise((resolve, reject) => {
+            db.query(query, (err) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve();
+            });
+          });
+        } catch (err) {
+          return res.status(500).json({ message: "Erreur lors de la purge." });
+        }
+      }
+  
+      return res.status(200).json({ message: "Base purgée avec succès." });
     });
   });
   
-
 module.exports = app;
