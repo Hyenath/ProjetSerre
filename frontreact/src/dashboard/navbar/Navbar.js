@@ -73,6 +73,7 @@ const Navbar = () => {
         <li><Link to="/dashboard">🏠 Accueil</Link></li>
         {isAuthenticated && <li><Link to="/new-user">👤 Créer un utilisateur</Link></li>}
         {isAuthenticated && <li><Link to="/regulation">⚙️ Régulation</Link></li>}
+        {isAuthenticated && <li><Link to="/base-purge">♻ Purger la base</Link></li>}
         {isAuthenticated && <li><Link to="/update-user">⚙️ Modifier Utilisateur</Link></li>}
 
         {/* Si l'utilisateur est connecté → bouton Déconnexion | Sinon → Connexion */}
