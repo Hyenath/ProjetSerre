@@ -29,7 +29,7 @@ const app = express();
 
 
 //--------------------------------Insérer Valeurs Capteurs dans la base---------------------------------------//
-app.post(config.add, checkToken, async (req, res) => {
+app.post(config.add, async (req, res) => {
     try {
         const outdoor_temperature = await poseidon.readoutdoorTemperature();
 

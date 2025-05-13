@@ -36,7 +36,7 @@
         const sql = `
           SELECT outdoor_temperature, date 
           FROM EventsRegulation
-          ORDER BY date ASC
+          ORDER BY date DESC
           LIMIT 10
         `;
     

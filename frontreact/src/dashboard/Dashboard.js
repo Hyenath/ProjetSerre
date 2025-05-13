@@ -14,6 +14,13 @@ const Dashboard = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [temperatureData, setTemperatureData] = useState([]);
   const navigate = useNavigate();
+  const [temperatureExte, setTemperatureExte] = useState([
+    { name: 'Extérieur', température: 0 },
+  ]);
+
+  const handleTemperatureChange = (temp) => {
+    setTemperatureExte([{ name: 'Extérieur', température: temp }]);
+  };
 
   // Vérification de l'authentification
   useEffect(() => {
@@ -58,7 +65,8 @@ const Dashboard = () => {
         const response = await fetch("http://192.168.65.74:3001/serre/outdoor-temperature");
         const data = await response.json();
   
-        setTemperatureData(data); // plus besoin de formatter à nouveau
+        const reversedData = data.reverse();
+        setTemperatureData(reversedData); // plus besoin de formatter à nouveau
       } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
       }
@@ -187,7 +195,25 @@ const Dashboard = () => {
           )}
 
           {errorMessage && <p className="error-message">{errorMessage}</p>}
-          <SerreInfo />
+
+          <div className="chart-container futuristic">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={temperatureExte} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                <XAxis dataKey="name" tick={{ fill: "#399196" }} />
+                <YAxis tick={{ fill: "#399196" }} />
+                <Tooltip 
+                    contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '10px', padding: '10px', boxShadow: '0 0 15px rgba(0, 234, 255, 0.4)' }} 
+                    itemStyle={{ color: '#E0F7FA', fontFamily: 'Orbitron', fontSize: '16px' }} 
+                    labelStyle={{ fontStyle: 'italic', color: '#E0F7FA' }}
+                  />
+                <Legend verticalAlign="top" align="right" />
+                <Bar dataKey="température" fill="#399196" radius={[10, 10, 0, 0]} barSize={50} animationDuration={1500} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <SerreInfo onTemperatureChange={handleTemperatureChange} />
         </div>
       </main>
       <Footer />

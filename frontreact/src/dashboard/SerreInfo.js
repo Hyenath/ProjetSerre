@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
-export default function SerreInfo() {
+export default function SerreInfo({ onTemperatureChange }) {
   const [data, setData] = useState({
     temperature_interieure: '--',
     temperature_exterieure: '--',
@@ -18,6 +18,11 @@ export default function SerreInfo() {
     socket.onmessage = (event) => {
       const newData = JSON.parse(event.data);
       setData(newData);
+
+      // Envoi au parent
+      if (onTemperatureChange && newData.temperature_exterieure !== '--') {
+        onTemperatureChange(parseFloat(newData.temperature_exterieure));
+      }
     };
 
     socket.onclose = () => {
@@ -25,7 +30,7 @@ export default function SerreInfo() {
     };
 
     return () => socket.close();
-  }, []);
+  }, [onTemperatureChange]);
 
   return (
     <div className="p-4 space-y-2">

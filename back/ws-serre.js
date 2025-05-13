@@ -17,7 +17,6 @@ function getFakeData() {
 }
 
 wss.on('connection', (ws) => {
-    console.log("Client connecté");
 
     const interval = setInterval(() => {
         ws.send(getFakeData());
@@ -25,6 +24,5 @@ wss.on('connection', (ws) => {
 
     ws.on('close', () => {
         clearInterval(interval);
-        console.log("Client déconnecté");
     });
 });

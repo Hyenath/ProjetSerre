@@ -54,7 +54,7 @@ class TCW241 {
 
     readIndoorTemperature() {}
     readIndoorMoisture() {}
-    async setHeaterState(enabled) {
+    async setHeaterState() {
         try {
             const result = await this.modbusClient.readCoils(102, 1);
             const state = result.response._body._valuesAsArray[0];
