@@ -312,4 +312,19 @@ app.put(config.updateRegParam, checkToken, async (req, res) => {
     }
 });
 
+
+//---------------------------------------Purger la base---------------------------------------//
+app.delete(config.basePurge, checkToken, async (req, res) => {
+    const sql = "DELETE FROM SomeTable WHERE ..."; // ⚠️ Personnalise selon tes besoins
+
+    db.query(sql, (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: "Erreur serveur lors de la purge" });
+      }
+  
+      res.status(200).json({ message: "Données supprimées avec succès." });
+    });
+  });
+  
+
 module.exports = app;
