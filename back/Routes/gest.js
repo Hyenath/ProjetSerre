@@ -142,7 +142,7 @@ app.post(config.add, checkToken, async (req, res) => {
 
 
 //--------------------------------Récupérer les paramètres de régulation---------------------------------------//
-app.get(config.getRegParam, async (req, res) => {
+app.get(config.getRegParam, checkToken, async (req, res) => {
     try {
         const sqlSelect = `
             SELECT
@@ -289,7 +289,7 @@ app.put(config.updateRegParam, checkToken, async (req, res) => {
             } catch (err) {
                 console.error("Erreur lors de la mise à jour de RegParam.json :", err);
             }
-        }, 30000); // 5 minutes (300 000 ms)
+        }, 300000); // 5 minutes (300 000 ms)
 
         // Générer une réponse dynamiquement pour modifier l'affichage de renvoie de la réponse json, afin de rendre cela plus lisible
         const responseValues = {};

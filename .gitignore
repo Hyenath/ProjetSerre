@@ -1,9 +1,9 @@
 /back/node_modules
 /back/config.json
 /back/RFID/
-/back/RegParam.json
-/back/RegParamSave.json
+/back/Routes/RegParam/
 /back/phpmyadmin
+
 
 /frontreact/node_modules
 /frontreact/README.md

@@ -1,5 +1,5 @@
 {
-  "threshold_low_frozen_water": 5,
+  "threshold_low_frozen_water": 8,
   "threshold_low_soil_moisture": 35,
   "threshold_high_soil_moisture": 44,
   "threshold_low_air_humidity": 8
