@@ -361,7 +361,8 @@ app.post(config.basePurge, checkToken, async (req, res) => {
         }
       }
   
-      return res.status(200).json({ message: "Base purgée avec succès." });
+      return res.status(200).json({ message: "Base purgée avec succès (EventsRegulation & TimestampedAccess)." });
+      console.log("Base purgée avec succès (EventsRegulation & TimestampedAccess).");
     });
   });
   
