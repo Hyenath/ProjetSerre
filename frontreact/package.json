@@ -16,9 +16,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "concurrently \"npm run server\" \"npm run servergest\" \"npm run client\"",
+    "start": "concurrently \"npm run client\" \"npm run server\" \"npm run serverws\" \"npm run servergest\"",
     "client": "react-scripts start",
     "server": "node ../back/server.js",
+    "serverws": "node ../back/ws-serre.js",
     "servergest": "node ../back/serverGestion.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
