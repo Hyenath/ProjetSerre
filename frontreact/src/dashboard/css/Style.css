@@ -141,3 +141,18 @@
     transform: translateY(0);
   }
 }
+
+.voir-plus-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 16px;
+  color: #00eaff;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s, text-shadow 0.3s;
+}
+
+.voir-plus-link:hover {
+  color: #ffffff;
+  text-shadow: 0 0 10px #00eaff;
+}

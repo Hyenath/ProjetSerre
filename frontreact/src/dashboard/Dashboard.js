@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react"; 
+import { useNavigate, Link } from "react-router-dom";
 import Navbar from "./navbar/Navbar";
 import Footer from "./footer/Footer";
 import BoutonIHM from "../component/bouton/BoutonIHM";
@@ -22,7 +22,6 @@ const Dashboard = () => {
     setTemperatureExte([{ name: 'Extérieur', température: temp }]);
   };
 
-  // Vérification de l'authentification
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
@@ -58,20 +57,17 @@ const Dashboard = () => {
     checkAuth();
   }, [navigate]);
 
-  // Récupération des données de température depuis le backend
   useEffect(() => {
     const fetchTemperatureData = async () => {
       try {
         const response = await fetch("http://192.168.65.74:3001/serre/outdoor-temperature");
         const data = await response.json();
-  
         const reversedData = data.reverse();
-        setTemperatureData(reversedData); // plus besoin de formatter à nouveau
+        setTemperatureData(reversedData);
       } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
       }
     };
-  
     fetchTemperatureData();
   }, []);
 
@@ -82,10 +78,9 @@ const Dashboard = () => {
       try {
         const response = await fetch("http://192.168.65.74:3001/serre/water-conso");
         const data = await response.json();
-  
+
         const total = data.rain + data.tap;
-  
-        // Évite une division par zéro
+
         if (total === 0) {
           setEauType([
             { name: 'Eau de pluie', value: 0 },
@@ -93,10 +88,10 @@ const Dashboard = () => {
           ]);
           return;
         }
-  
+
         const rainPercent = Math.round((data.rain / total) * 100);
         const tapPercent = 100 - rainPercent;
-  
+
         setEauType([
           { name: 'Eau de pluie', value: rainPercent },
           { name: 'Eau courante', value: tapPercent },
@@ -105,7 +100,7 @@ const Dashboard = () => {
         console.error("Erreur récupération consommation d'eau :", error);
       }
     };
-  
+
     fetchWaterConso();
   }, []);
 
@@ -116,7 +111,7 @@ const Dashboard = () => {
           <h1 className="title-glow">🌿 Tableau de bord de la serre</h1>
           <p className="subtitle">Visualisation en temps réel de la température et de l'eau utilisée</p>
 
-            {/* Graphique de température */}
+          {/* Graphique de température */}
           <div className="chart-container futuristic">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={temperatureData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -124,10 +119,10 @@ const Dashboard = () => {
                 <XAxis dataKey="name" tick={{ fill: "#399196" }} />
                 <YAxis tick={{ fill: "#399196" }} />
                 <Tooltip 
-                    contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '10px', padding: '10px', boxShadow: '0 0 15px rgba(0, 234, 255, 0.4)' }} 
-                    itemStyle={{ color: '#E0F7FA', fontFamily: 'Orbitron', fontSize: '16px' }} 
-                    labelStyle={{ fontStyle: 'italic', color: '#E0F7FA' }}
-                  />
+                  contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '10px', padding: '10px', boxShadow: '0 0 15px rgba(0, 234, 255, 0.4)' }} 
+                  itemStyle={{ color: '#E0F7FA', fontFamily: 'Orbitron', fontSize: '16px' }} 
+                  labelStyle={{ fontStyle: 'italic', color: '#E0F7FA' }}
+                />
                 <Legend verticalAlign="top" align="right" />
                 <Bar dataKey="température" fill="#399196" radius={[10, 10, 0, 0]} barSize={50} animationDuration={1500} />
               </BarChart>
@@ -153,7 +148,7 @@ const Dashboard = () => {
                     cx="50%" cy="50%"
                     innerRadius={50} outerRadius={80}
                     fill="#8884d8" paddingAngle={5}
-                    animationDuration={1000}  // Animation fluide au chargement
+                    animationDuration={1000}
                   >
                     {eauType.map((entry, index) => (
                       <Cell
@@ -176,11 +171,11 @@ const Dashboard = () => {
               </div>
 
               {isAuthenticated && (
-              <div className="buttons-container">
-                <BoutonIHM label="Electrovanne Pluie" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
-                <BoutonIHM label="Electrovanne Courante" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
-              </div>
-            )}
+                <div className="buttons-container">
+                  <BoutonIHM label="Electrovanne Pluie" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
+                  <BoutonIHM label="Electrovanne Courante" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
+                </div>
+              )}
             </div>
           </div>
 
@@ -203,10 +198,10 @@ const Dashboard = () => {
                 <XAxis dataKey="name" tick={{ fill: "#399196" }} />
                 <YAxis tick={{ fill: "#399196" }} />
                 <Tooltip 
-                    contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '10px', padding: '10px', boxShadow: '0 0 15px rgba(0, 234, 255, 0.4)' }} 
-                    itemStyle={{ color: '#E0F7FA', fontFamily: 'Orbitron', fontSize: '16px' }} 
-                    labelStyle={{ fontStyle: 'italic', color: '#E0F7FA' }}
-                  />
+                  contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '10px', padding: '10px', boxShadow: '0 0 15px rgba(0, 234, 255, 0.4)' }} 
+                  itemStyle={{ color: '#E0F7FA', fontFamily: 'Orbitron', fontSize: '16px' }} 
+                  labelStyle={{ fontStyle: 'italic', color: '#E0F7FA' }}
+                />
                 <Legend verticalAlign="top" align="right" />
                 <Bar dataKey="température" fill="#399196" radius={[10, 10, 0, 0]} barSize={50} animationDuration={1500} />
               </BarChart>
@@ -214,6 +209,13 @@ const Dashboard = () => {
           </div>
 
           <SerreInfo onTemperatureChange={handleTemperatureChange} />
+
+          {/* Lien ajouté à la fin (Details)*/}
+          {isAuthenticated && (
+          <div style={{ marginTop: '30px', textAlign: 'center' }}>
+            <Link to="/details-dashboard" className="voir-plus-link">Voir plus en détail</Link>
+          </div>
+          )}
         </div>
       </main>
       <Footer />

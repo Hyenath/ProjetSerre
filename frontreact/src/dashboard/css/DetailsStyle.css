@@ -1,0 +1,105 @@
+.body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.details-container {
+  background-image: url('./Serre_futuriste_purple.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Segoe UI', sans-serif;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow-x: hidden;
+  z-index: -1;
+  filter: blur(0.25px);
+}
+
+/* Ajout d’un effet global verre */
+.details-main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 960px;
+  margin: auto;
+  backdrop-filter: blur(0.25px);
+  -webkit-backdrop-filter: blur(0.25px);
+  position: relative;
+  z-index: 1;
+}
+
+.details-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 3rem;
+  color: #00eaff;
+  text-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
+}
+
+/* Style carte amélioré */
+.section-card {
+  background: rgba(32, 32, 32, 0.7);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2.5rem;
+  box-shadow:
+    0 0 15px rgba(0, 234, 255, 0.1),
+    0 4px 30px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 234, 255, 0.05);
+  transition: all 0.3s ease-in-out;
+}
+
+.section-card:hover {
+  box-shadow:
+    0 0 25px rgba(0, 234, 255, 0.3),
+    0 6px 40px rgba(0, 0, 0, 0.5);
+  transform: translateY(-4px) scale(1.01);
+}
+
+.section-card h2 {
+  font-size: 1.5rem;
+  color: #00eaff;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-shadow: 0 0 5px rgba(0, 234, 255, 0.4);
+}
+
+/* Bouton retour amélioré */
+.back-button-wrapper {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.back-button {
+  background: linear-gradient(135deg, #00eaff, #00bcd4);
+  color: #0d0d0d;
+  padding: 0.9rem 2.2rem;
+  border: none;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow:
+    0 0 12px rgba(0, 234, 255, 0.3),
+    0 0 6px rgba(0, 234, 255, 0.15) inset;
+  transition: background-color 0.3s ease, transform 0.2s, box-shadow 0.3s;
+}
+
+.back-button:hover {
+  background: linear-gradient(135deg, #00bcd4, #00eaff);
+  transform: scale(1.08);
+  box-shadow:
+    0 0 20px rgba(0, 234, 255, 0.45),
+    0 0 10px rgba(0, 234, 255, 0.2) inset;
+}
