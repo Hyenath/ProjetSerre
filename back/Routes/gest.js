@@ -141,6 +141,7 @@ app.post(config.add, async (req, res) => {
     }
 });
 */
+//--------------------------------Insérer Valeurs Capteurs dans la base---------------------------------------//
 app.post(config.add, async (req, res) => {
     try {
         const outdoor_temperature = await poseidon.readoutdoorTemperature();

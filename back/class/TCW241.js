@@ -1,41 +1,60 @@
 const net = require('net');
 const Modbus = require('jsmodbus');
 
+const Heating = require('./Heating.js');
+
 class TCW241 {
     constructor(ip, port) {
         this.ip = ip;
         this.port = port;
         this.client = new net.Socket();
-        this.modbusClient = new Modbus.client.TCP(this.client, 1); // Slave ID = 1
+        this.modbusClient = new Modbus.client.TCP(this.client, 1);
+        this.heating = null;
         
-        this.client.connect({ host: ip, port: port }, () => {
+        this.client.connect({ host: ip, port: port }, async () => {
             console.log("✅ Connexion Modbus TCP établie");
+            
+            await this.#setStates();
         });
         
         this.client.on('error', (err) => {
             console.error("❌ Erreur TCP :", err.message);
         });
+        
+    }
+    
+    async #setStates() {
+        try {
+            const result = await this.modbusClient.readCoils(102, 1);
+            const state = result.response._body._valuesAsArray[0];
+            const isEnabled = state === 1;
+            
+            if (isEnabled) this.heating = new Heating(Heating.State.ON);
+            else this.heating = new Heating(Heating.State.OFF);    
+        } catch (error) {
+            console.error("Erreur :", error);
+        }
     }
     
     async activateRelay(relay) {
         switch (relay) {
             case "1":
-                await this.enableWatering();
-                break;
+            await this.enableWatering();
+            break;
             case "2":
-                await this.enableMisting();
-                break;
+            await this.enableMisting();
+            break;
             case "3":
-                await this.setHeaterState();
-                break;
+            await this.setHeaterState();
+            break;
             case "4":
-                await this.setWindowState();
-                break;    
+            await this.setWindowState();
+            break;    
             default:
-                throw new Error("Numéro de relais invalide");
+            throw new Error("Numéro de relais invalide");
         }
     }
-
+    
     async readSoilMoisture(sensorId) {
         try {
             const result = await this.modbusClient.readHoldingRegisters(17500, 2);
@@ -51,7 +70,7 @@ class TCW241 {
             return { success: false, error: error.message };
         }
     }
-
+    
     readIndoorTemperature() {}
     readIndoorMoisture() {}
     async setHeaterState() {

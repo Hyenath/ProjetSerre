@@ -1,148 +1,221 @@
 const express = require('express');
-
-//Fichiers JSON
 const config = require('../config.json');
 const db = require('../DataBase/db');
-//
+const ModbusRTU = require('modbus-serial');
+const EventEmitter = require('events');
 
 const app = express();
+app.use(express.json()); // Pour parser JSON dans req.body
 
+//-----------------------------------------Fonction pour lire le RFID via Modbus-------------------------------------//
+async function lireRFIDviaModbus(ip, port = 502, registre = 1000, nbRegistres = 15) {
+  const client = new ModbusRTU();
 
-//--------------------------------Ajouter les logs dans la base---------------------------------------//
-/*
-
-app.post(config.postRFIDLog, async (req, res) => {
-    const { rfid_id } = req.body;
-    console.log("Body Content: ", req.body);
-
-    if (!rfid_id) {
-        return res.status(400).json({ success: false, message: "UID manquant !" });
-    }
-
-    try {
-        // Vérifier si le rfid_id existe dans AuthorizedAccess
-        const authorizedUser = await new Promise((resolve, reject) => {
-            db.query('SELECT * FROM AuthorizedAccess WHERE rfid_id = ?', [rfid_id], (err, results) => {
-                if (err) {
-                    console.error("Erreur lors de la vérification de l'UID : ", err);
-                    reject(err);
-                } else {
-                    resolve(results.length > 0 ? results[0] : null);
-                }
-            });
-        });
-
-        if (!authorizedUser) {
-            // Pas trouvé, donc interdit d'insérer
-            return res.status(403).json({ success: false, message: "UID non autorisé !" });
-        }
-
-        // UID trouvé : alors insérer dans TimestampedAccess
-        const timestampResult = await new Promise((resolve, reject) => {
-            db.query('INSERT INTO TimestampedAccess (date) VALUES (NOW())', (err, result) => {
-                if (err) {
-                    console.error("Erreur lors de l'insertion dans TimestampedAccess : ", err);
-                    reject(err);
-                } else {
-                    console.log("Timestamped inséré avec l'ID : ", result.insertId);
-                    resolve(result);
-                }
-            });
-        });
-
-        if (!timestampResult || !timestampResult.insertId) {
-            throw new Error("Impossible de récupérer l'insertId pour TimestampedAccess.");
-        }
-
-        // Réponse avec accessGranted pour l'Arduino
-        res.json({
-            success: true,
-            accessGranted: true,
-            message: `Accès autorisé pour UID ${rfid_id}, timestamp ID ${timestampResult.insertId} -> enregistrement en base effectué`
-        });
-
-    } catch (err) {
-        console.error("Erreur lors de l'enregistrement RFID :", err);
-        res.status(500).json({ success: false, error: "Erreur serveur" });
-    }
-});
-*/
-
-app.post(config.postRFIDLog, async (req, res) => {
-    const { rfid_id } = req.body;
-    console.log("Body Content: ", req.body);
-
-    if (!rfid_id) {
-        return res.status(400).json({ success: false, message: "UID manquant !" });
-    }
-
-    try {
-        // Vérifier si le rfid_id existe dans AuthorizedAccess
-        const authorizedUser = await new Promise((resolve, reject) => {
-            db.query('SELECT * FROM AuthorizedAccess WHERE rfid_id = ?', [rfid_id], (err, results) => {
-                if (err) {
-                    console.error("Erreur lors de la vérification de l'UID : ", err);
-                    reject(err);
-                } else {
-                    resolve(results.length > 0 ? results[0] : null);
-                }
-            });
-        });
-
-        if (!authorizedUser) {
-            // Pas trouvé, donc interdit d'insérer
-            return res.status(403).json({ success: false, message: "UID non autorisé !" });
-        }
-
-        // UID trouvé, insérer dans TimestampedAccess et établir la relation
-        const timestampResult = await new Promise((resolve, reject) => {
-            db.query('INSERT INTO TimestampedAccess (rfid_id, date) VALUES (?, NOW())', [rfid_id], (err, result) => {
-                if (err) {
-                    console.error("Erreur lors de l'insertion dans TimestampedAccess : ", err);
-                    reject(err);
-                } else {
-                    console.log("Timestamped inséré avec l'ID : ", result.insertId);
-                    resolve(result);
-                }
-            });
-        });
-
-        if (!timestampResult || !timestampResult.insertId) {
-            throw new Error("Impossible de récupérer l'insertId pour TimestampedAccess.");
-        }
-
-        // Réponse avec accessGranted pour l'Arduino
-        res.json({
-            success: true,
-            accessGranted: true,
-            message: `Accès autorisé pour UID ${rfid_id}, timestamp ID ${timestampResult.insertId} -> enregistrement en base effectué`
-        });
-
-    } catch (err) {
-        console.error("Erreur lors de l'enregistrement RFID :", err);
-        res.status(500).json({ success: false, error: "Erreur serveur" });
-    }
-});
-
-
-//Nathan (TEST Interroger RFID)
-/*
-const axios = require('axios');
-
-async function fetchUID() {
-  try {
-    const response = await axios.get('http://192.168.65.240', {
-      auth: {
-        username: 'TON_USER',  // ➔ remplace par ton vrai login
-        password: 'TON_MDP'     // ➔ remplace par ton vrai mot de passe
-      }
+  function modbusDataToAscii(data) {
+    const bytes = [];
+    data.forEach(code => {
+      bytes.push((code >> 8) & 0xFF);
+      bytes.push(code & 0xFF);
     });
-    console.log("UID reçu :", response.data);
+    let result = '';
+    for (const b of bytes) {
+      if (b === 0) break; // arrêt à premier 0 (fin chaîne)
+      if (b >= 32 && b <= 126) { // caractères imprimables ASCII
+        result += String.fromCharCode(b);
+      }
+    }
+    return result.trim();
+  }
+
+  try {
+    await Promise.race([
+      client.connectTCP(ip, { port }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout connexion Modbus')), 5000))
+    ]);
+
+    client.setID(1);
+
+    const data = await client.readHoldingRegisters(registre, nbRegistres);
+
+    if (!data || !data.data || data.data.length === 0) {
+      throw new Error("Aucune donnée lue depuis les registres");
+    }
+
+    // Ne rien retourner si données toutes nulles
+    if (data.data.every(code => code === 0)) {
+      return null;
+    }
+
+    console.log(`Données brutes lues depuis Modbus:`, data.data);
+
+    let rfid_ascii = modbusDataToAscii(data.data);
+
+    let rfid_hex = data.data.map(code =>
+      ((code >> 8).toString(16).padStart(2, '0') + (code & 0xFF).toString(16).padStart(2, '0'))
+    ).join("").toUpperCase();
+
+    const rfid_id = rfid_ascii.length > 0 ? rfid_ascii : rfid_hex;
+
+    console.log(`UID lu via Modbus : ASCII="${rfid_ascii}" | HEX="${rfid_hex}"`);
+
+    return rfid_id;
   } catch (err) {
-    console.error("Erreur de requête :", err);
+    console.error("Erreur lecture Modbus RFID :", err);
+    throw err;
+  } finally {
+    try {
+      await client.close();
+      console.log("Connexion Modbus fermée");
+    } catch (e) {
+      console.warn("Erreur lors de la fermeture de la connexion Modbus :", e.message);
+    }
   }
 }
 
-fetchUID();
-*/
+//-----------------------------------------Lecteur RFID en écoute continue-------------------------------------//
+class RFIDReader extends EventEmitter {
+  constructor(ip, port = 502) {
+    super();
+    this.ip = ip;
+    this.port = port;
+    this.lastId = null;
+    this.client = new ModbusRTU();
+    this.isConnected = false;
+  }
+
+  async connect() {
+    await this.client.connectTCP(this.ip, { port: this.port });
+    this.client.setID(1);
+    this.isConnected = true;
+    console.log("Connecté au lecteur Modbus");
+  }
+
+  poll(intervalMs = 2000) {
+    if (!this.isConnected) {
+      throw new Error("Lecteur Modbus non connecté");
+    }
+
+    // L'UID "vide" problématique au démarrage, à ne pas répéter
+    const uidVide = "000000000000000054000078020000000000000000000000000000000000";
+
+    // Fonction pour détecter une chaîne vide ou uniquement des '0' ou caractères non imprimables
+    const isEmptyOrInvalid = (str) => {
+      if (!str) return true;
+      const onlyZerosOrNonPrintable = [...str].every(c => c === '0' || c.charCodeAt(0) < 32);
+      return onlyZerosOrNonPrintable;
+    };
+
+    setInterval(async () => {
+      try {
+        const data = await this.client.readHoldingRegisters(1000, 15);
+
+        if (data.data.every(code => code === 0)) {
+          if (this.lastId !== null) {
+            this.lastId = null;
+            console.log("Carte retirée (données vides)");
+          }
+          return;
+        }
+
+        let rfid_ascii = '';
+        for (const code of data.data) {
+          const highByte = (code >> 8) & 0xFF;
+          if (highByte === 0) break;
+          if (highByte >= 32 && highByte <= 126) rfid_ascii += String.fromCharCode(highByte);
+
+          const lowByte = code & 0xFF;
+          if (lowByte === 0) break;
+          if (lowByte >= 32 && lowByte <= 126) rfid_ascii += String.fromCharCode(lowByte);
+        }
+        rfid_ascii = rfid_ascii.trim();
+
+        let rfid_hex = data.data.map(code =>
+          ((code >> 8).toString(16).padStart(2, '0') + (code & 0xFF).toString(16).padStart(2, '0'))
+        ).join("").toUpperCase();
+
+        const rfid_id = rfid_ascii.length > 0 ? rfid_ascii : rfid_hex;
+
+        if (isEmptyOrInvalid(rfid_id)) {
+          if (this.lastId !== null) {
+            this.lastId = null;
+            console.log("Carte retirée (ID invalide ou vide)");
+          }
+          return;
+        }
+
+        // Empêcher de réémettre le même UID "vide" si déjà en lastId
+        if (rfid_id === uidVide) {
+          if (this.lastId !== uidVide) {
+            this.lastId = uidVide;
+            // Option : tu peux afficher une seule fois au démarrage ici si tu veux
+            // console.log("UID vide détecté (initialisation)");
+          }
+          return; // ne pas émettre ni loguer à nouveau
+        }
+
+        if (rfid_id !== this.lastId) {
+          this.lastId = rfid_id;
+          this.emit('newCard', rfid_id);
+          console.log("Nouvelle carte détectée:", rfid_id);
+        }
+      } catch (err) {
+        console.error("Erreur lecture Modbus dans poll:", err.message);
+      }
+    }, intervalMs);
+  }
+}
+
+// Création et lancement du lecteur RFID
+const ipLecteurDefaut = "192.168.65.240";
+const rfidReader = new RFIDReader(ipLecteurDefaut);
+
+rfidReader.connect()
+  .then(() => rfidReader.poll(3000)) // lire toutes les 3 secondes
+  .catch(err => console.error("Erreur connexion Modbus au démarrage:", err.message));
+
+rfidReader.on('newCard', (rfid_id) => {
+  // Traitement éventuel de l'UID détecté
+});
+
+//------------------------------------------AJOUT DES LOGS-------------------------------------//
+app.post(config.postRFIDLog, async (req, res) => {
+  const ipLecteur = req.body?.ip || "192.168.65.240";
+
+  try {
+    const rfid_id = await lireRFIDviaModbus(ipLecteur);
+
+    if (!rfid_id || rfid_id.length === 0) {
+      return res.status(400).json({ success: false, message: "UID introuvable via Modbus !" });
+    }
+
+    const authorizedUser = await new Promise((resolve, reject) => {
+      db.query('SELECT * FROM AuthorizedAccess WHERE rfid_id = ?', [rfid_id], (err, results) => {
+        if (err) return reject(err);
+        resolve(results.length > 0 ? results[0] : null);
+      });
+    });
+
+    if (!authorizedUser) {
+      return res.status(403).json({ success: false, message: `UID ${rfid_id} non autorisé !` });
+    }
+
+    const timestampResult = await new Promise((resolve, reject) => {
+      db.query('INSERT INTO TimestampedAccess (rfid_id, date) VALUES (?, NOW())', [rfid_id], (err, result) => {
+        if (err) return reject(err);
+        resolve(result);
+      });
+    });
+
+    res.json({
+      success: true,
+      accessGranted: true,
+      message: `Accès autorisé pour UID ${rfid_id}, ID log : ${timestampResult.insertId}`
+    });
+
+  } catch (err) {
+    console.error("Erreur dans le traitement RFID via Modbus :", err);
+    res.status(500).json({ success: false, error: "Erreur serveur Modbus ou base de données" });
+  }
+});
+
 module.exports = app;
