@@ -64,3 +64,9 @@ setInterval(async () => {
     console.error('Erreur lors de l’appel périodique :', error.message);
   }
 }, 300 * 1000); // toutes les 300 secondes (5min); 30 s = 1 min
+
+
+
+/*
+Code fait par un idiot du village
+*/
