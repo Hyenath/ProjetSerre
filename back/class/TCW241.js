@@ -20,7 +20,6 @@ class TCW241 {
         this.client.on('error', (err) => {
             console.error("❌ Erreur TCP :", err.message);
         });
-        
     }
     
     async #setStates() {
@@ -33,6 +32,54 @@ class TCW241 {
             else this.heating = new Heating(Heating.State.OFF);    
         } catch (error) {
             console.error("Erreur :", error);
+        }
+    }
+    
+    async getHeaterState() {
+        try {
+            const result = await this.modbusClient.readCoils(102, 1);
+            const state = result.response._body._valuesAsArray[0];
+            const isEnabled = state === 1;
+            if (isEnabled !== true && isEnabled !== false) throw new Error("Impossible de lire l'état actuel du chauffage 5");
+            return isEnabled;
+        } catch (error) {
+            return Error("Erreur lors de la lecture de l'état du chauffage : " + error.message);
+        }
+    }
+    
+    async getWindowState() {
+        try {
+            const result = await this.modbusClient.readCoils(103, 1);
+            const state = result.response._body._valuesAsArray[0];
+            const isOpen = state ? true : false;           
+            if (isOpen !== true && isOpen !== false) throw new Error("Impossible de lire l'état actuel du vasistas");
+            return isOpen;
+        } catch (error) {
+            return Error("Erreur lors de la lecture de l'état du vasistas : " + error.message);
+        }
+    }
+    
+    async getMistingState() {
+        try {
+            const result = await this.modbusClient.readCoils(100, 1);
+            const state = result.response._body._valuesAsArray[0];
+            const isEnabled = state === 1;
+            if (isEnabled !== true && isEnabled !== false) throw new Error("Impossible de lire l'état actuel de la brumisation");
+            return isEnabled;
+        } catch (error) {
+            return Error("Erreur lors de la lecture de l'état de la brumisation : " + error.message);
+        }
+    }
+    
+    async getWateringState() {
+        try {
+            const result = await this.modbusClient.readCoils(101, 1);
+            const state = result.response._body._valuesAsArray[0];
+            const isEnabled = state === 1;
+            if (isEnabled !== true && isEnabled !== false) throw new Error("Impossible de lire l'état actuel de l'arrosage");
+            return isEnabled;
+        } catch (error) {
+            return Error("Erreur lors de la lecture de l'état de l'arrosage : " + error.message);
         }
     }
     
@@ -57,28 +104,41 @@ class TCW241 {
     
     async readSoilMoisture(sensorId) {
         try {
-            const result = await this.modbusClient.readHoldingRegisters(17500, 2);
+            var register = 0;
+            switch (sensorId) {
+                case "1":
+                register = 17500;
+                break;
+                case "2":
+                register = 17502;
+                break;
+                case "3":
+                register = 17504;
+                break;
+                default:
+                throw new Error("Capteur inconnu");
+            }
+            const result = await this.modbusClient.readHoldingRegisters(register, 2);
             const data = result.response._body._valuesAsArray;
-            const Vout = data[0] * 0.1; // Conversion en volts
+            const Vout = data[0] * 0.1;
             const humidite = -1.91e-9 * Vout ** 3 + 1.33e-5 * Vout ** 2 + 9.56e-3 * Vout - 21.6;
             return {
                 analogValue: data[0],
                 taux_humidite: Math.max(0.02, Math.min(humidite, 100)).toFixed(2)
             };
         } catch (error) {
-            console.error("Erreur Modbus :", error);
+            console.error(error);
             return { success: false, error: error.message };
         }
     }
     
     readIndoorTemperature() {}
+    
     readIndoorMoisture() {}
+    
     async setHeaterState() {
         try {
-            const result = await this.modbusClient.readCoils(102, 1);
-            const state = result.response._body._valuesAsArray[0];
-            const isEnabled = state === 1;
-            if (isEnabled !== true && isEnabled !== false) throw new Error("Impossible de lire l'état actuel du chauffage 5");
+            const isEnabled = await this.getHeaterState();
             await this.modbusClient.writeSingleCoil(102, !isEnabled);
             return { success: true, message: `Chauffage ${!isEnabled ? "allumé" : "éteint"}` };
         } catch (error) {
@@ -86,12 +146,10 @@ class TCW241 {
             return { success: false, error: error.message };
         }
     }
+    
     async enableMisting() {
         try {
-            const result = await this.modbusClient.readCoils(100, 1);
-            const state = result.response._body._valuesAsArray[0];
-            const isEnabled = state === 1;
-            if (isEnabled !== true && isEnabled !== false) throw new Error("Impossible de lire l'état actuel de la brumisation");
+            const isEnabled = await this.getMistingState();
             await this.modbusClient.writeSingleCoil(100, !isEnabled);
             return { success: true, message: `Brumisation ${!isEnabled ? "activée" : "désactivée"}` };
         } catch (error) {
@@ -99,12 +157,10 @@ class TCW241 {
             return { success: false, error: error.message };
         }
     }
+    
     async enableWatering() {
         try {
-            const result = await this.modbusClient.readCoils(101, 1);
-            const state = result.response._body._valuesAsArray[0];
-            const isEnabled = state === 1;
-            if (isEnabled !== true && isEnabled !== false) throw new Error("Impossible de lire l'état actuel de l'arrosage");
+            const isEnabled = await this.getWateringState();
             await this.modbusClient.writeSingleCoil(101, !isEnabled);
             return { success: true, message: `Arrosage ${!isEnabled ? "activé" : "désactivé"}` };
         } catch (error) {
@@ -112,6 +168,7 @@ class TCW241 {
             return { success: false, error: error.message };
         }
     }
+    
     async setWindowState() {
         try {
             const result = await this.modbusClient.readCoils(103, 1);
