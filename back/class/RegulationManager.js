@@ -1,4 +1,4 @@
-const TCW = require('./TCW241');
+import TCW from './TCW241';
 
 class RegulationManager {
     constructor(ip, port) {
@@ -25,7 +25,10 @@ class RegulationManager {
         this.wateringState = this.tcw.getWateringState();
     }
 
-    getMeanSoilMoisture() {}
+    getMeanSoilMoisture() {
+        mean = (this.soilMoisture[0] + this.soilMoisture[1] + this.soilMoisture[2]) / 3;
+        return mean;
+    }
 }
 
-module.exports=RegulationManager;
+export default RegulationManager;

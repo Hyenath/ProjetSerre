@@ -1,14 +1,14 @@
-const net = require('net');
-const Modbus = require('jsmodbus');
+import { Socket } from 'net';
+import { client } from 'jsmodbus';
 
-const Heating = require('./Heating.js');
+import Heating, { State } from './Heating.js';
 
 class TCW241 {
     constructor(ip, port) {
         this.ip = ip;
         this.port = port;
-        this.client = new net.Socket();
-        this.modbusClient = new Modbus.client.TCP(this.client, 1);
+        this.client = new Socket();
+        this.modbusClient = new client.TCP(this.client, 1);
         this.heating = null;
         
         this.client.connect({ host: ip, port: port }, async () => {
@@ -28,8 +28,8 @@ class TCW241 {
             const state = result.response._body._valuesAsArray[0];
             const isEnabled = state === 1;
             
-            if (isEnabled) this.heating = new Heating(Heating.State.ON);
-            else this.heating = new Heating(Heating.State.OFF);    
+            if (isEnabled) this.heating = new Heating(State.ON);
+            else this.heating = new Heating(State.OFF);    
         } catch (error) {
             console.error("Erreur :", error);
         }
@@ -184,4 +184,4 @@ class TCW241 {
     }
 }
 
-module.exports = TCW241;
+export default TCW241;
