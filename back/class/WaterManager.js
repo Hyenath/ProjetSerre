@@ -5,7 +5,7 @@ class WaterManager {
         this.poseidon = new Poseidon('192.168.65.253', 502);
         this.tapWaterUsed = 0;
         this.rainWaterUsed = 0;
-        this.waterSource = "RAIN"; // RAIN ou TAP
+        this.waterSource = "TAP"; // RAIN ou TAP
     }
 
     async updateWaterUsage() {

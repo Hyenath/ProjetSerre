@@ -1,4 +1,4 @@
-import TCW from './TCW241';
+const TCW = require('./TCW241');
 
 class RegulationManager {
     constructor(ip, port) {
@@ -31,4 +31,4 @@ class RegulationManager {
     }
 }
 
-export default RegulationManager;
+module.exports = RegulationManager;

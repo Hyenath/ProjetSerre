@@ -1,7 +1,8 @@
-import { createTransport } from 'nodemailer';
+const  createTransport = require('nodemailer').createTransport;
 
-import RegulationManager from './RegulationManager';
-import { mail } from '../config.json';
+const RegulationManager = require('./RegulationManager');
+
+const mail = require('../config.json').mail;
 
 class MainManager {
     constructor(app) {
@@ -87,6 +88,22 @@ class MainManager {
         this.app.get('/testGet', (req, res) => {
             return res.status(200).json({ success: true });
         })
+
+        //------------------------------------------------------------AUTHENTIFICATION----------------------------------------------------------------//
+        const authRoutes = require('../Routes/auth');
+        this.app.use('/auth', authRoutes);
+
+        //------------------------------------------------------------GESTION------------------------------------------------------------//
+        const gestRoutes = require('../Routes/gest');
+        this.app.use('/gest', gestRoutes);
+
+        //------------------------------------------------------------RFID------------------------------------------------------------//
+        const rfidRoutes = require('../Routes/rfid');
+        this.app.use('/rfid', rfidRoutes);
+
+        //------------------------------------------------------------SERRE------------------------------------------------------------//
+        const serreRoutes = require('../Routes/serre');
+        this.app.use('/serre', serreRoutes);
     }
     
     sendMailAlert(message) {
@@ -123,4 +140,4 @@ class MainManager {
     RFIDReadEventHandler(rfid) {}
 }
 
-export default MainManager;
+module.exports = MainManager;

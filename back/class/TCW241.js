@@ -1,7 +1,8 @@
-import { Socket } from 'net';
-import { client } from 'jsmodbus';
+const Socket = require('net').Socket;
+const client = require('jsmodbus').client;
 
-import Heating, { State } from './Heating.js';
+const Heating = require('./Heating.js');
+const State = Heating.State;
 
 class TCW241 {
     constructor(ip, port) {
@@ -184,4 +185,4 @@ class TCW241 {
     }
 }
 
-export default TCW241;
+module.exports = TCW241;

@@ -81,7 +81,7 @@ class Poseidon {
                 0x00, 0x04,
                 0x02,
                 0x04,           // Function Code  = 4 (Read Input Register)
-                adrs1, adrs2,   // Register Addr  = JE NE SAIS PAS ENCORE (29/04/2025)
+                adrs1, adrs2, 
                 0x00, 0x01   
             ]);
 
@@ -218,11 +218,138 @@ class Poseidon {
         }
     }
 
+    // -------------------- ACTIONNEURS (VALVE & POMPE) : --------------------
+    async setWaterSource(source) {
+        try {
+            console.log(`Changement de la source d'eau vers : ${source}`);
+            // -------------------- VALVE TAP : --------------------
+            if (source === "TAP") await new Promise((resolve, reject) => {
+            const client = new net.Socket();
+            const adrs1 = 0x00 ; // Register Addr 0000 puisque je n'ai pas le capteur en réel (29/04/2025)
+            const adrs2 = 0x00 ;
 
+            const request = Buffer.from([
+                0x00, 0x00,
+                0x00, 0x00,
+                0x00, 0x04,
+                0x02,
+                0x05,           // Function Code  = 5 (Write Single Coil)
+                adrs1, adrs2,   // Register Addr  = JE NE SAIS PAS ENCORE (26/05/2025)
+                0x00, 0x00   
+            ]);
+            client.connect(this.port, this.ip, () => {
+                client.write(request);
+            });
+            client.on('data', (data) => {
+                console.log(`Réponse actionneur (source ${source}):`, data.toString('hex'));
+                client.destroy();
+                resolve();
+            });
+            client.on('error', (err) => {
+                reject("Erreur Modbus TCP (setWaterSource TAP): " + err.message);
+            });
+            });
+            
+            // -------------------- VALVE RAIN : --------------------
+            else if (source === "RAIN") await new Promise((resolve, reject) => {
+            const client = new net.Socket();
+            const adrs1 = 0x00 ; // Register Addr 0000 puisque je n'ai pas l'actionneur en réel (26/05/2025)
+            const adrs2 = 0x00 ;
 
+            const request = Buffer.from([
+                0x00, 0x00,
+                0x00, 0x00,
+                0x00, 0x04,
+                0x02,
+                0x05,           // Function Code  = 5 (Write Single Coil)
+                adrs1, adrs2,   // Register Addr  = JE NE SAIS PAS ENCORE (26/05/2025)
+                0xFF, 0x00   
+            ]);
+            client.connect(this.port, this.ip, () => {
+                client.write(request);
+            });
+            client.on('data', (data) => {
+                console.log(`Réponse actionneur (source ${source}):`, data.toString('hex'));
+                client.destroy();
+                resolve();
+            });
+            client.on('error', (err) => {
+                reject("Erreur Modbus TCP (setWaterSource RAIN): " + err.message);
+            });
+        });
+        
+        } catch (error) {
+            console.error("Erreur dans setWaterSource:", error);
+            throw error;
+        }
+    }
 
+    async setPumpState(state) {
+    try {
+        console.log(`Mise à jour de l'état de la pompe : ${state}`);
 
+        // -------------------- POMPE OFF : --------------------
+        if (state === "OFF") await new Promise((resolve, reject) => {
+            const client = new net.Socket();
+            const adrs1 = 0x00; // Register Addr 0000 puisque je n'ai pas l'actionneur en réel (26/05/2025)
+            const adrs2 = 0x00;
+
+            const request = Buffer.from([
+                0x00, 0x00,
+                0x00, 0x00,
+                0x00, 0x04,
+                0x02,
+                0x05,           // Function Code  = 5 (Write Single Coil)
+                adrs1, adrs2,   // Register Addr  = JE NE SAIS PAS ENCORE (26/05/2025)
+                0x00, 0x00   
+            ]);
+            client.connect(this.port, this.ip, () => {
+                client.write(request);
+            });
+            client.on('data', (data) => {
+                console.log(`Réponse actionneur (pompe OFF):`, data.toString('hex'));
+                client.destroy();
+                resolve();
+            });
+            client.on('error', (err) => {
+                reject("Erreur Modbus TCP (setPumpState OFF): " + err.message);
+            });
+        });
+
+        // -------------------- POMPE ON : --------------------
+        else if (state === "ON") await new Promise((resolve, reject) => {
+            const client = new net.Socket();
+            const adrs1 = 0x00; // Register Addr 0000 puisque je n'ai pas l'actionneur en réel (26/05/2025)
+            const adrs2 = 0x00;
+
+            const request = Buffer.from([
+                0x00, 0x00,
+                0x00, 0x00,
+                0x00, 0x04,
+                0x02,
+                0x05,           // Function Code  = 5 (Write Single Coil)
+                adrs1, adrs2,   // Register Addr  = JE NE SAIS PAS ENCORE (26/05/2025)
+                0xFF, 0x00   
+            ]);
+            client.connect(this.port, this.ip, () => {
+                client.write(request);
+            });
+            client.on('data', (data) => {
+                console.log(`Réponse actionneur (pompe ON):`, data.toString('hex'));
+                client.destroy();
+                resolve();
+            });
+            client.on('error', (err) => {
+                reject("Erreur Modbus TCP (setPumpState ON): " + err.message);
+            });
+        });
+
+    } catch (error) {
+        console.error("Erreur dans setPumpState:", error);
+        throw error;
+    }
+    }
 }
 
-
 module.exports = Poseidon;
+

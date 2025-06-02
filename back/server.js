@@ -1,11 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const bodyParser = require('body-parser');
 
 //Fichiers JSON
 const config = require('./config.json');
 const db = require('./DataBase/db');
-//
 
 const app = express();
 
@@ -14,21 +14,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-//------------------------------------------------------------AUTHENTIFICATION----------------------------------------------------------------//
-const authRoutes = require('./Routes/auth');
-app.use('/auth', authRoutes);
+//Gestion Globale Main Manager
+const MainManager = require('./class/MainManager');
 
-//------------------------------------------------------------GESTION------------------------------------------------------------//
-const gestRoutes = require('./Routes/gest');
-app.use('/gest', gestRoutes);
+const mainManager = new MainManager(app);
 
-//------------------------------------------------------------RFID------------------------------------------------------------//
-const rfidRoutes = require('./Routes/rfid');
-app.use('/rfid', rfidRoutes);
+mainManager.setupAPIEndpoints();
+//
 
-//------------------------------------------------------------SERRE------------------------------------------------------------//
-const serreRoutes = require('./Routes/serre');
-app.use('/serre', serreRoutes);
 
 //Pour lancer les serveurs, se référer au package.json du frontreact//
 

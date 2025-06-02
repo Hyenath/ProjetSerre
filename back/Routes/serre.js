@@ -31,10 +31,10 @@
       res.json({ Vasistas: vasistas });
   });
 
-  app.get("/outdoor-temperature", async (req, res) => {
+  app.get("/etat-serre", async (req, res) => {
       try {
         const sql = `
-          SELECT outdoor_temperature, date 
+          SELECT indoor_temperature, outdoor_temperature, indoor_air_humidity, soil_moisture_1, soil_moisture_2, soil_moisture_3, date 
           FROM EventsRegulation
           ORDER BY date DESC
           LIMIT 10
@@ -51,7 +51,12 @@
             name: new Date(row.date).toLocaleString("fr-FR", {
               day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"
             }),
-            température: row.outdoor_temperature
+            température: row.outdoor_temperature,
+            températureInt: row.indoor_temperature,
+            humidité: row.indoor_air_humidity,
+            humiditéSol1: row.soil_moisture_1,
+            humiditéSol2: row.soil_moisture_2,
+            humiditéSol3: row.soil_moisture_3,
           }));
     
           res.json(data);

@@ -60,7 +60,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchTemperatureData = async () => {
       try {
-        const response = await fetch("http://192.168.65.74:3001/serre/outdoor-temperature");
+        const response = await fetch("http://192.168.65.74:3001/serre/etat-serre");
         const data = await response.json();
         const reversedData = data.reverse();
         setTemperatureData(reversedData);
@@ -111,7 +111,7 @@ const Dashboard = () => {
           <h1 className="title-glow">🌿 Tableau de bord de la serre</h1>
           <p className="subtitle">Visualisation en temps réel de la température et de l'eau utilisée</p>
 
-          {/* Graphique de température */}
+          {/* Graphique de température extérieur*/}
           <div className="chart-container futuristic">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={temperatureData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -133,6 +133,24 @@ const Dashboard = () => {
                 <BoutonIHM label="Vasistas" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
               </div>
             )}
+          </div>
+
+          {/* Graphique de température intérieur*/}
+          <div className="chart-container futuristic">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={temperatureData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                <XAxis dataKey="name" tick={{ fill: "#399196" }} />
+                <YAxis tick={{ fill: "#399196" }} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.7)', borderRadius: '10px', padding: '10px', boxShadow: '0 0 15px rgba(0, 234, 255, 0.4)' }} 
+                  itemStyle={{ color: '#E0F7FA', fontFamily: 'Orbitron', fontSize: '16px' }} 
+                  labelStyle={{ fontStyle: 'italic', color: '#E0F7FA' }}
+                />
+                <Legend verticalAlign="top" align="right" />
+                <Bar dataKey="température" fill="#399196" radius={[10, 10, 0, 0]} barSize={50} animationDuration={1500} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
           {/* Graphique de consommation d'eau */}

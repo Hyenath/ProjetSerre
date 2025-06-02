@@ -6,7 +6,7 @@ const app = express();
 app.use(bodyParser.json())
 app.use(cors());
 
-const MainManager = require('./class/MainManager').default;
+const MainManager = require('./class/MainManager');
 
 const mainManager = new MainManager(app);
 

@@ -147,7 +147,7 @@ class RFIDReader extends EventEmitter {
         if (rfid_id === uidVide) {
           if (this.lastId !== uidVide) {
             this.lastId = uidVide;
-            // Option : tu peux afficher une seule fois au démarrage ici si tu veux
+            // possibilité d'afficher une seule fois au démarrage ici si tu veux
             // console.log("UID vide détecté (initialisation)");
           }
           return; // ne pas émettre ni loguer à nouveau
