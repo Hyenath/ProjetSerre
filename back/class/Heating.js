@@ -4,7 +4,6 @@ class Heating {
             throw new Error(`Invalid state: ${state}`);
         }
         this.state = state;
-        console.log("État initial du chauffage :", this.state);
     }
 
     turnOn() {

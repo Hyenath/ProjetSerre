@@ -15,7 +15,7 @@ class TCW241 {
         this.client.connect({ host: ip, port: port }, async () => {
             console.log("✅ Connexion Modbus TCP établie");
             
-            //await this.#setStates();
+            await this.#setStates();
         });
         
         this.client.on('error', (err) => {
