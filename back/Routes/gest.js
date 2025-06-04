@@ -158,135 +158,165 @@ app.post(config.add, async (req, res) => {
 */
 //--------------------------------Insérer Valeurs Capteurs dans la base---------------------------------------//
 app.post(config.add, async (req, res) => {
-    try {
-        //water_network
-        const water_network = await waterManager.switchWaterSource();
-        req.body.water_network = waterManager.waterSource.toLowerCase();
+  try {
+    // water_network
+    const water_network = await waterManager.switchWaterSource();
+    req.body.water_network = waterManager.waterSource.toLowerCase();
 
-        //soil_moisture_
-        const soil1 = await tcw241.readSoilMoisture("1");
-
-        if (soil1.success === false) {
-            return res.status(500).json({ success: false, message: `Erreur lecture capteur soil_moisture_1: ${soil1.error}` });
-        }
-
-        const soil2 = await tcw241.readSoilMoisture("2");
-        if (soil2.success === false) {
-            return res.status(500).json({ success: false, message: `Erreur lecture capteur soil_moisture_2: ${soil2.error}` });
-        }
-
-        const soil3 = await tcw241.readSoilMoisture("3");
-        if (soil3.success === false) {
-            return res.status(500).json({ success: false, message: `Erreur lecture capteur soil_moisture_3: ${soil3.error}` });
-        }
-
-        req.body.soil_moisture_1 = Number(soil1.taux_humidite);
-        req.body.soil_moisture_2 = Number(soil2.taux_humidite);
-        req.body.soil_moisture_3 = Number(soil3.taux_humidite);
-
-        //indoor_temperature
-        const indoor_temperature = await tcw241.readIndoorTemperature();
-        req.body.indoor_temperature = indoor_temperature;
-        
-        //outdoor_temperature
-        //const outdoor_temperature = await poseidon.readoutdoorTemperature();
-        //req.body.outdoor_temperature = outdoor_temperature;
-
-
-        const Data = {
-            water_network: { allowedValues: ["rain", "tap"] },
-            pump: { type: "boolean" },
-            rain_water_consumption: {},
-            tap_water_consumption: {},
-            soil_moisture_1: {},
-            soil_moisture_2: {},
-            soil_moisture_3: {},
-            watering: { type: "boolean" },
-            misting: { type: "boolean" },
-            indoor_air_humidity: {},
-            indoor_temperature: {},
-            outdoor_temperature: {},
-            open_window: { type: "boolean" },
-            heating: { type: "boolean" }
-        };
-
-        // Récupération des seuils de régulation
-        const regulationParams = await new Promise((resolve, reject) => {
-            db.query("SELECT * FROM RegulationParameters", (err, result) => {
-                if (err) return reject(err);
-                if (result.length === 0) return reject(new Error("Aucun paramètre trouvé."));
-                resolve(result[0]); // On suppose qu’il n’y a qu’une ligne
-            });
-        });
-
-        // Appliquer les seuils dynamiques
-        Data.soil_moisture_1.min = Data.soil_moisture_2.min = Data.soil_moisture_3.min = regulationParams.threshold_low_soil_moisture;
-        Data.soil_moisture_1.max = Data.soil_moisture_2.max = Data.soil_moisture_3.max = regulationParams.threshold_high_soil_moisture;
-
-        Data.indoor_air_humidity.min = regulationParams.threshold_low_air_humidity;
-        Data.indoor_air_humidity.max = regulationParams.threshold_high_air_humidity;
-
-        Data.indoor_temperature.min = regulationParams.threshold_low_temperature;
-        Data.indoor_temperature.max = regulationParams.threshold_high_temperature;
-
-        //Seuils non régulables par les paramètres de régulations 
-        //(par impossibilité ou choix, qui, dans le second cas seront compris dans un seuil brut des attendues du tableau Data)
-        Data.outdoor_temperature.min = -50; // seuils physiques
-        Data.outdoor_temperature.max = 50;
-
-        Data.rain_water_consumption.min = Data.tap_water_consumption.min = 0;
-        Data.rain_water_consumption.max = Data.tap_water_consumption.max = 500;
-
-        const tab = [];
-
-        for (const field in Data) {
-            let value = req.body[field];
-
-            if (value === undefined) {
-                return res.status(400).json({ success: false, message: `Le champ '${field}' est manquant.` });
-            }
-
-            if (Data[field].allowedValues) {
-                if (!Data[field].allowedValues.includes(value)) {
-                    return res.status(400).json({ success: false, message: `Valeur de '${field}' invalide.` });
-                }
-            } else if (Data[field].type === "boolean") {
-                value = value == "1" || value === true || value === "true";
-            } else {
-                value = Number(value);
-                if (isNaN(value)) {
-                    return res.status(400).json({ success: false, message: `Valeur de '${field}' non numérique.` });
-                }
-                if (Data[field].min !== undefined && value < Data[field].min) {
-                    return res.status(400).json({ success: false, message: `Valeur de '${field}' trop basse.` });
-                }
-                if (Data[field].max !== undefined && value > Data[field].max) {
-                    return res.status(400).json({ success: false, message: `Valeur de '${field}' trop élevée.` });
-                }
-            }
-
-            tab.push(value);
-        }
-
-        const sqlInsert = `
-            INSERT INTO EventsRegulation 
-            (${Object.keys(Data).join(', ')}) 
-            VALUES (${Object.keys(Data).map(() => '?').join(', ')})
-        `;
-
-        db.query(sqlInsert, tab, (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: "Erreur lors de l'insertion des valeurs." });
-            }
-            return res.status(200).json({ success: true, values: req.body });
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Erreur serveur." });
+    // soil_moisture_
+    const soil1 = await tcw241.readSoilMoisture("1");
+    if (soil1.success === false) {
+      return res.status(500).json({
+        success: false,
+        message: `Erreur lecture capteur soil_moisture_1: ${soil1.error}`
+      });
     }
+
+    const soil2 = await tcw241.readSoilMoisture("2");
+    if (soil2.success === false) {
+      return res.status(500).json({
+        success: false,
+        message: `Erreur lecture capteur soil_moisture_2: ${soil2.error}`
+      });
+    }
+
+    const soil3 = await tcw241.readSoilMoisture("3");
+    if (soil3.success === false) {
+      return res.status(500).json({
+        success: false,
+        message: `Erreur lecture capteur soil_moisture_3: ${soil3.error}`
+      });
+    }
+
+    req.body.soil_moisture_1 = Number(soil1.taux_humidite);
+    req.body.soil_moisture_2 = Number(soil2.taux_humidite);
+    req.body.soil_moisture_3 = Number(soil3.taux_humidite);
+
+    // indoor_temperature
+    const indoorRead = await tcw241.readIndoorTemperature();
+    req.body.indoor_temperature = Number(indoorRead.temperature);
+
+    // outdoor_temperature (décommenter si nécessaire)
+    const outdoor_temperature = await poseidon.readoutdoorTemperature();
+    req.body.outdoor_temperature = outdoor_temperature;
+
+    const Data = {
+      water_network: { allowedValues: ["rain", "tap"] },
+      pump: { type: "boolean" },
+      rain_water_consumption: {},
+      tap_water_consumption: {},
+      soil_moisture_1: {},
+      soil_moisture_2: {},
+      soil_moisture_3: {},
+      watering: { type: "boolean" },
+      misting: { type: "boolean" },
+      indoor_air_humidity: {},
+      indoor_temperature: {},
+      outdoor_temperature: {},
+      open_window: { type: "boolean" },
+      heating: { type: "boolean" }
+    };
+
+    // Récupération des seuils de régulation
+    const regulationParams = await new Promise((resolve, reject) => {
+      db.query("SELECT * FROM RegulationParameters", (err, result) => {
+        if (err) return reject(err);
+        if (result.length === 0)
+          return reject(new Error("Aucun paramètre trouvé."));
+        resolve(result[0]); // On suppose qu’il n’y a qu’une ligne
+      });
+    });
+
+    // Appliquer les seuils dynamiques
+    Data.soil_moisture_1.min =
+      Data.soil_moisture_2.min =
+      Data.soil_moisture_3.min =
+        regulationParams.threshold_low_soil_moisture;
+    Data.soil_moisture_1.max =
+      Data.soil_moisture_2.max =
+      Data.soil_moisture_3.max =
+        regulationParams.threshold_high_soil_moisture;
+
+    Data.indoor_air_humidity.min = regulationParams.threshold_low_air_humidity;
+    Data.indoor_air_humidity.max = regulationParams.threshold_high_air_humidity;
+
+    Data.indoor_temperature.min = regulationParams.threshold_low_temperature;
+    Data.indoor_temperature.max = regulationParams.threshold_high_temperature;
+
+    // Seuils non régulables par les paramètres de régulations
+    Data.outdoor_temperature.min = -50; // seuils physiques
+    Data.outdoor_temperature.max = 5000000; 
+
+    Data.rain_water_consumption.min = Data.tap_water_consumption.min = 0;
+    Data.rain_water_consumption.max = Data.tap_water_consumption.max = 500;
+
+    const tab = [];
+
+    for (const field in Data) {
+      let value = req.body[field];
+
+      if (value === undefined) {
+        return res.status(400).json({
+          success: false,
+          message: `Le champ '${field}' est manquant.`
+        });
+      }
+
+      if (Data[field].allowedValues) {
+        if (!Data[field].allowedValues.includes(value)) {
+          return res.status(400).json({
+            success: false,
+            message: `Valeur de '${field}' invalide.`
+          });
+        }
+      } else if (Data[field].type === "boolean") {
+        value = value == "1" || value === true || value === "true";
+      } else {
+        value = Number(value);
+        if (isNaN(value)) {
+          return res.status(400).json({
+            success: false,
+            message: `Valeur de '${field}' non numérique.`
+          });
+        }
+        if (Data[field].min !== undefined && value < Data[field].min) {
+          return res.status(400).json({
+            success: false,
+            message: `Valeur de '${field}' trop basse.`
+          });
+        }
+        if (Data[field].max !== undefined && value > Data[field].max) {
+          return res.status(400).json({
+            success: false,
+            message: `Valeur de '${field}' trop élevée.`
+          });
+        }
+      }
+
+      tab.push(value);
+    }
+
+    const sqlInsert = `
+      INSERT INTO EventsRegulation 
+      (${Object.keys(Data).join(", ")}) 
+      VALUES (${Object.keys(Data).map(() => "?").join(", ")})
+    `;
+
+    db.query(sqlInsert, tab, (err, result) => {
+      if (err) {
+        console.error(err);
+        return res
+          .status(500)
+          .json({ error: "Erreur lors de l'insertion des valeurs." });
+      }
+      return res.status(200).json({ success: true, values: req.body });
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Erreur serveur." });
+  }
 });
+
 
 
 //--------------------------------Récupérer les paramètres de régulation---------------------------------------//
