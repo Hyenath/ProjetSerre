@@ -20,8 +20,6 @@ const MainManager = require('./class/MainManager');
 const mainManager = new MainManager(app);
 
 mainManager.setupAPIEndpoints();
-//
-
 
 //Pour lancer les serveurs, se référer au package.json du frontreact//
 

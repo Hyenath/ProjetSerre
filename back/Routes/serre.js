@@ -20,15 +20,131 @@
   const app = express();
 
   //------------------------------------------------------CODE (NOTAMMENT POSEIDON)----------------------------------------------------//
-  vasistas = false;
 
-  app.get("/test-vasistas", (req, res) => {
-      vasistas = !vasistas;
-      res.json({ Vasistas: vasistas });
+  app.get("/vasistas", (req, res) => {
+    const sql = `
+      SELECT open_window
+      FROM EventsRegulation
+      ORDER BY date DESC
+      LIMIT 1
+    `;
+
+    db.query(sql, (err, results) => {
+      if (err) {
+        console.error("Erreur MySQL :", err);
+        return res.status(500).json({ error: "Erreur serveur" });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: "Aucune donnée trouvée" });
+      }
+      res.json({ Etat : results[0].open_window === 1 });
     });
+  });
 
-  app.get("/etat-vasistas", (req, res) => {
-      res.json({ Vasistas: vasistas });
+  app.get("/update-vasistas", (req, res) => {
+    // Étape 1 : récupérer l'ID de la dernière ligne
+    console.log("démarrage de la commande")
+    const selectSql = `
+      SELECT id, open_window
+      FROM EventsRegulation
+      ORDER BY date DESC
+      LIMIT 1
+    `;
+
+    db.query(selectSql, (err, results) => {
+      if (err) {
+        console.error("Erreur MySQL SELECT :", err);
+        return res.status(500).json({ error: "Erreur serveur (SELECT)" });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: "Aucune donnée trouvée" });
+      }
+
+      const { id, open_window } = results[0];
+      const newValue = open_window === 1 ? 0 : 1;
+
+      // Étape 2 : mise à jour avec la valeur inversée
+      const updateSql = `
+        UPDATE EventsRegulation
+        SET open_window = ?
+        WHERE id = ?
+      `;
+
+      db.query(updateSql, [newValue, id], (err2) => {
+        if (err2) {
+          console.error("Erreur MySQL UPDATE :", err2);
+          return res.status(500).json({ error: "Erreur serveur (UPDATE)" });
+        }
+
+        console.log("execution terminé")
+        res.json({ Etat : newValue === 1 });
+      });
+    });
+  });
+
+  app.get("/heating", (req, res) => {
+    const sql = `
+      SELECT heating
+      FROM EventsRegulation
+      ORDER BY date DESC
+      LIMIT 1
+    `;
+
+    db.query(sql, (err, results) => {
+      if (err) {
+        console.error("Erreur MySQL :", err);
+        return res.status(500).json({ error: "Erreur serveur" });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: "Aucune donnée trouvée" });
+      }
+      res.json({ Etat : results[0].open_window === 1 });
+    });
+  });
+
+  app.get("/update-heating", (req, res) => {
+    // Étape 1 : récupérer l'ID de la dernière ligne
+    console.log("démarrage de la commande")
+    const selectSql = `
+      SELECT id, heating
+      FROM EventsRegulation
+      ORDER BY date DESC
+      LIMIT 1
+    `;
+
+    db.query(selectSql, (err, results) => {
+      if (err) {
+        console.error("Erreur MySQL SELECT :", err);
+        return res.status(500).json({ error: "Erreur serveur (SELECT)" });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: "Aucune donnée trouvée" });
+      }
+
+      const { id, heating } = results[0];
+      const newValue = heating === 1 ? 0 : 1;
+
+      // Étape 2 : mise à jour avec la valeur inversée
+      const updateSql = `
+        UPDATE EventsRegulation
+        SET heating = ?
+        WHERE id = ?
+      `;
+
+      db.query(updateSql, [newValue, id], (err2) => {
+        if (err2) {
+          console.error("Erreur MySQL UPDATE :", err2);
+          return res.status(500).json({ error: "Erreur serveur (UPDATE)" });
+        }
+
+        console.log("execution terminé")
+        res.json({ Etat : newValue === 1 });
+      });
+    });
   });
 
   app.get("/etat-serre", async (req, res) => {

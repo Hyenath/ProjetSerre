@@ -113,6 +113,11 @@ const Dashboard = () => {
 
           {/* Graphique de température extérieur*/}
           <div className="chart-container futuristic">
+            {temperatureData.length === 0 && (
+              <p style={{ color: "#ff6b6b", textAlign: "center" }}>
+                Aucune donnée disponible pour la température extérieure.
+              </p>
+            )}
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={temperatureData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
@@ -124,19 +129,24 @@ const Dashboard = () => {
                   labelStyle={{ fontStyle: 'italic', color: '#E0F7FA' }}
                 />
                 <Legend verticalAlign="top" align="right" />
-                <Bar dataKey="température" fill="#399196" radius={[10, 10, 0, 0]} barSize={50} animationDuration={1500} />
+                <Bar dataKey="température" fill="#399196" name="température exterieur" radius={[10, 10, 0, 0]} barSize={50} animationDuration={1500} />
               </BarChart>
             </ResponsiveContainer>
 
             {isAuthenticated && (
               <div className="buttons-container">
-                <BoutonIHM label="Vasistas" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
+                <BoutonIHM label="Vasistas" apiEndpoint="http://192.168.65.74:3001/serre/update-vasistas" apiEtat="http://192.168.65.74:3001/serre/vasistas" />
               </div>
             )}
           </div>
 
           {/* Graphique de température intérieur*/}
           <div className="chart-container futuristic">
+            {temperatureData.length === 0 && (
+              <p style={{ color: "#ff6b6b", textAlign: "center" }}>
+                Aucune donnée disponible pour la température extérieure.
+              </p>
+            )}
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={temperatureData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
@@ -148,9 +158,41 @@ const Dashboard = () => {
                   labelStyle={{ fontStyle: 'italic', color: '#E0F7FA' }}
                 />
                 <Legend verticalAlign="top" align="right" />
-                <Bar dataKey="température" fill="#399196" radius={[10, 10, 0, 0]} barSize={50} animationDuration={1500} />
+                <Bar dataKey="températureInt" fill="#ff8c00" name="température intérieur" radius={[10, 10, 0, 0]} barSize={50} animationDuration={1500} />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+
+          {/* Graphique de l'humidité (air + sol) */}
+          <div className="chart-container futuristic">
+            {temperatureData.length === 0 ? (
+              <p style={{ color: "#ff6b6b", textAlign: "center" }}>
+                Aucune donnée d’humidité disponible pour le moment.
+              </p>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={temperatureData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                  <XAxis dataKey="name" tick={{ fill: "#399196" }} />
+                  <YAxis tick={{ fill: "#399196" }} unit="%" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                      borderRadius: '10px',
+                      padding: '10px',
+                      boxShadow: '0 0 15px rgba(0, 234, 255, 0.4)'
+                    }}
+                    itemStyle={{ color: '#E0F7FA', fontFamily: 'Orbitron', fontSize: '16px' }}
+                    labelStyle={{ fontStyle: 'italic', color: '#E0F7FA' }}
+                  />
+                  <Legend verticalAlign="top" align="right" />
+                  <Bar dataKey="humidité" fill="#1CA6A3" name="Air" radius={[10, 10, 0, 0]} />
+                  <Bar dataKey="humiditéSol1" fill="#FF8C42" name="Sol 1" radius={[10, 10, 0, 0]} />
+                  <Bar dataKey="humiditéSol2" fill="#FFB703" name="Sol 2" radius={[10, 10, 0, 0]} />
+                  <Bar dataKey="humiditéSol3" fill="#D7263D" name="Sol 3" radius={[10, 10, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
           {/* Graphique de consommation d'eau */}
@@ -190,8 +232,8 @@ const Dashboard = () => {
 
               {isAuthenticated && (
                 <div className="buttons-container">
-                  <BoutonIHM label="Electrovanne Pluie" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
-                  <BoutonIHM label="Electrovanne Courante" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
+                  <BoutonIHM label="Electrovanne Pluie" apiEndpoint="http://192.168.65.74:3001/serre/update-vasistas" apiEtat="http://192.168.65.74:3001/serre/vasistas" />
+                  <BoutonIHM label="Electrovanne Courante" apiEndpoint="http://192.168.65.74:3001/serre/update-vasistas" apiEtat="http://192.168.65.74:3001/serre/vasistas" />
                 </div>
               )}
             </div>
@@ -201,9 +243,9 @@ const Dashboard = () => {
           {isAuthenticated && (
             <div className="control-panel">
               <h1 className="title-glow">🔧 Interface de contrôle</h1>
-              <BoutonIHM label="Brumisation" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
-              <BoutonIHM label="Arrosage" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
-              <BoutonIHM label="Chauffage" apiEndpoint="http://192.168.65.74:3001/serre/test-vasistas" apiEtat="http://192.168.65.74:3001/serre/etat-vasistas" />
+              <BoutonIHM label="Brumisation" apiEndpoint="http://192.168.65.74:3001/serre/update-vasistas" apiEtat="http://192.168.65.74:3001/serre/vasistas" />
+              <BoutonIHM label="Arrosage" apiEndpoint="http://192.168.65.74:3001/serre/update-vasistas" apiEtat="http://192.168.65.74:3001/serre/vasistas" />
+              <BoutonIHM label="Chauffage" apiEndpoint="http://192.168.65.74:3001/serre/update-heating" apiEtat="http://192.168.65.74:3001/serre/update-heating" />
             </div>
           )}
 

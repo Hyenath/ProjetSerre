@@ -11,7 +11,7 @@ const BoutonIHM = ({ label, apiEndpoint, apiEtat, initialColor = "blue" }) => {
         const response = await fetch(apiEtat, { method: "GET" });
         const data = await response.json();
   
-        if (data.Vasistas === true) {
+        if (data.Etat === true) {
           setColor("green");
           setTexteEtat("Ouvert");
         } else {
@@ -33,7 +33,7 @@ const BoutonIHM = ({ label, apiEndpoint, apiEtat, initialColor = "blue" }) => {
       const response = await fetch(apiEndpoint, { method: "GET" });
       const data = await response.json();
   
-      if (data.Vasistas === true) {
+      if (data.Etat === true) {
         setColor("green");
         setTexteEtat("Ouvert");
       } else {

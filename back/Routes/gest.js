@@ -8,6 +8,21 @@ const checkToken = require('../Middlewares/check-token.js');
     const Poseidon = require('../class/Poseidon.js');
     const poseidon = new Poseidon('192.168.65.253', 502);
     //
+
+    //WaterManager
+    const WaterManager = require('../class/WaterManager.js');
+    const waterManager = new WaterManager('192.168.65.253', 502);
+    //
+
+    //RegulationManager
+    const RegulationManager = require('../class/RegulationManager.js');
+    const regulationManager = new RegulationManager('192.168.65.252', 502);
+    //
+
+    //TCW241
+    const TCW241 = require('../class/TCW241.js');
+    const tcw241 = new TCW241('192.168.65.252', 502);
+    //
 //
 
 //Gestion des fichiers
@@ -144,6 +159,33 @@ app.post(config.add, async (req, res) => {
 //--------------------------------Insérer Valeurs Capteurs dans la base---------------------------------------//
 app.post(config.add, async (req, res) => {
     try {
+        //water_network
+        const water_network = await waterManager.switchWaterSource();
+        req.body.water_network = waterManager.waterSource.toLowerCase();
+
+        //soil_moisture_
+        const soil1 = await tcw241.readSoilMoisture("1");
+
+        if (soil1.success === false) {
+            return res.status(500).json({ success: false, message: `Erreur lecture capteur soil_moisture_1: ${soil1.error}` });
+        }
+
+        const soil2 = await tcw241.readSoilMoisture("2");
+        if (soil2.success === false) {
+            return res.status(500).json({ success: false, message: `Erreur lecture capteur soil_moisture_2: ${soil2.error}` });
+        }
+
+        const soil3 = await tcw241.readSoilMoisture("3");
+        if (soil3.success === false) {
+            return res.status(500).json({ success: false, message: `Erreur lecture capteur soil_moisture_3: ${soil3.error}` });
+        }
+
+        req.body.soil_moisture_1 = Number(soil1.taux_humidite);
+        req.body.soil_moisture_2 = Number(soil2.taux_humidite);
+        req.body.soil_moisture_3 = Number(soil3.taux_humidite);
+
+        
+        //outdoor_temperature
         const outdoor_temperature = await poseidon.readoutdoorTemperature();
         req.body.outdoor_temperature = outdoor_temperature;
 
