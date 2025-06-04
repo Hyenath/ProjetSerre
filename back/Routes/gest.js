@@ -184,10 +184,14 @@ app.post(config.add, async (req, res) => {
         req.body.soil_moisture_2 = Number(soil2.taux_humidite);
         req.body.soil_moisture_3 = Number(soil3.taux_humidite);
 
+        //indoor_temperature
+        const indoor_temperature = await tcw241.readIndoorTemperature();
+        req.body.indoor_temperature = indoor_temperature;
         
         //outdoor_temperature
-        const outdoor_temperature = await poseidon.readoutdoorTemperature();
-        req.body.outdoor_temperature = outdoor_temperature;
+        //const outdoor_temperature = await poseidon.readoutdoorTemperature();
+        //req.body.outdoor_temperature = outdoor_temperature;
+
 
         const Data = {
             water_network: { allowedValues: ["rain", "tap"] },

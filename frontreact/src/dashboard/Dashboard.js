@@ -109,7 +109,7 @@ const Dashboard = () => {
       <main className="main-futuristic">
         <div className="container-futuristic">
           <h1 className="title-glow">Tableau de bord de la serre</h1>
-          <p className="subtitle">Visualisation en temps réel de la température et de l'eau utilisée</p>
+          <p className="subtitle">Visualisation en temps réel de l'état de la serre</p>
 
           {/* Graphique de température extérieur*/}
           <div className="chart-container futuristic">
@@ -144,7 +144,7 @@ const Dashboard = () => {
           <div className="chart-container futuristic">
             {temperatureData.length === 0 && (
               <p style={{ color: "#ff6b6b", textAlign: "center" }}>
-                Aucune donnée disponible pour la température extérieure.
+                Aucune donnée disponible pour la température intérieur.
               </p>
             )}
             <ResponsiveContainer width="100%" height={300}>
@@ -198,6 +198,11 @@ const Dashboard = () => {
           {/* Graphique de consommation d'eau */}
           <div className="chart-container futuristic">
             <h1 className="title-glow">Graphe de la consommation d'eau</h1>
+            {temperatureData.length === 0 && (
+              <p style={{ color: "#ff6b6b", textAlign: "center" }}>
+                Aucune donnée disponible pour la consommation d'eau.
+              </p>
+            )}
             <div className="chart-and-buttons">
               <div className="chart">
                 <PieChart width={300} height={300}>

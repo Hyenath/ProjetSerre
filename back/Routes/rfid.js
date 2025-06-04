@@ -95,10 +95,8 @@ class RFIDReader extends EventEmitter {
       throw new Error("Lecteur Modbus non connecté");
     }
 
-    // L'UID "vide" problématique au démarrage, à ne pas répéter
     const uidVide = "000000000000000054000078020000000000000000000000000000000000";
 
-    // Fonction pour détecter une chaîne vide ou uniquement des '0' ou caractères non imprimables
     const isEmptyOrInvalid = (str) => {
       if (!str) return true;
       const onlyZerosOrNonPrintable = [...str].every(c => c === '0' || c.charCodeAt(0) < 32);
@@ -143,21 +141,40 @@ class RFIDReader extends EventEmitter {
           return;
         }
 
-        // Empêcher de réémettre le même UID "vide" si déjà en lastId
         if (rfid_id === uidVide) {
           if (this.lastId !== uidVide) {
             this.lastId = uidVide;
-            // possibilité d'afficher une seule fois au démarrage ici si tu veux
-            // console.log("UID vide détecté (initialisation)");
           }
-          return; // ne pas émettre ni loguer à nouveau
+          return;
         }
 
         if (rfid_id !== this.lastId) {
           this.lastId = rfid_id;
           this.emit('newCard', rfid_id);
           console.log("Nouvelle carte détectée:", rfid_id);
+
+          ////////////////////////////////////// posrRFIDLog Automatique /////////////////////////////////////
+          db.query('SELECT * FROM AuthorizedAccess WHERE rfid_id = ?', [rfid_id], (err, results) => {
+            if (err) {
+              console.error("Erreur DB (vérification autorisation):", err);
+              return;
+            }
+
+            if (results.length === 0) {
+              console.log(`UID ${rfid_id} non autorisé`);
+              return;
+            }
+
+            db.query('INSERT INTO TimestampedAccess (rfid_id, date) VALUES (?, NOW())', [rfid_id], (err, result) => {
+              if (err) {
+                console.error("Erreur insertion log d'accès:", err);
+              } else {
+                console.log(`Accès autorisé pour UID ${rfid_id}, log inséré avec ID ${result.insertId}`);
+              }
+            });
+          });
         }
+
       } catch (err) {
         console.error("Erreur lecture Modbus dans poll:", err.message);
       }
@@ -165,16 +182,16 @@ class RFIDReader extends EventEmitter {
   }
 }
 
-// Création et lancement du lecteur RFID
 const ipLecteurDefaut = "192.168.65.240";
 const rfidReader = new RFIDReader(ipLecteurDefaut);
 
 rfidReader.connect()
-  .then(() => rfidReader.poll(3000)) // lire toutes les 3 secondes
+  .then(() => rfidReader.poll(3000))
   .catch(err => console.error("Erreur connexion Modbus au démarrage:", err.message));
 
+// 👇 L'event est toujours là mais n'est plus nécessaire si le log est automatique
 rfidReader.on('newCard', (rfid_id) => {
-  // Traitement éventuel de l'UID détecté
+  // facultatif
 });
 
 //------------------------------------------AJOUT DES LOGS-------------------------------------//
