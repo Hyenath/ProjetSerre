@@ -108,7 +108,7 @@ const Dashboard = () => {
     <div className="dashboard-body">
       <main className="main-futuristic">
         <div className="container-futuristic">
-          <h1 className="title-glow">🌿 Tableau de bord de la serre</h1>
+          <h1 className="title-glow">Tableau de bord de la serre</h1>
           <p className="subtitle">Visualisation en temps réel de la température et de l'eau utilisée</p>
 
           {/* Graphique de température extérieur*/}
@@ -242,7 +242,7 @@ const Dashboard = () => {
           {/* Interface de contrôle */}
           {isAuthenticated && (
             <div className="control-panel">
-              <h1 className="title-glow">🔧 Interface de contrôle</h1>
+              <h1 className="title-glow">Interface de contrôle</h1>
               <BoutonIHM label="Brumisation" apiEndpoint="http://192.168.65.74:3001/serre/update-vasistas" apiEtat="http://192.168.65.74:3001/serre/vasistas" />
               <BoutonIHM label="Arrosage" apiEndpoint="http://192.168.65.74:3001/serre/update-vasistas" apiEtat="http://192.168.65.74:3001/serre/vasistas" />
               <BoutonIHM label="Chauffage" apiEndpoint="http://192.168.65.74:3001/serre/update-heating" apiEtat="http://192.168.65.74:3001/serre/update-heating" />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./BoutonIHM.css"; // Fichier CSS pour le style
+import "./BoutonIHM.css";
 
 const BoutonIHM = ({ label, apiEndpoint, apiEtat, initialColor = "blue" }) => {
   const [color, setColor] = useState(initialColor);

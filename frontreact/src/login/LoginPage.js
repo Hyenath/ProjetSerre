@@ -15,8 +15,8 @@ const LoginPage = () => {
     const generatePoints = () => {
       const newPoints = [];
       for (let i = 0; i < 10; i++) {
-        const x = Math.random() * 50;  // Position horizontale (en pourcentage)
-        const y = Math.random() * 50;  // Position verticale (en pourcentage)
+        const x = Math.random() * 50;
+        const y = Math.random() * 50;
         newPoints.push({ x, y });
       }
       setPoints(newPoints);
@@ -25,7 +25,6 @@ const LoginPage = () => {
     generatePoints();
   }, []);
 
-  // Fonction pour gérer le submit du formulaire
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -36,7 +35,7 @@ const LoginPage = () => {
 
     const userData = { username, password };
 
-    // Envoi des données au serveur avec fetch
+    // Envoi des données au serveur
     fetch('http://192.168.65.74:3001/auth/login', {
       method: 'POST',
       headers: {
@@ -52,10 +51,9 @@ const LoginPage = () => {
       })
       .then((data) => {
         if (data.message === 'Connexion réussie') {
-          // Stockage du token dans localStorage
-          localStorage.setItem('token', data.token); // Stocke le token dans le localStorage
+          localStorage.setItem('token', data.token);
 
-          navigate("/dashboard"); // Redirection vers Dashboard
+          navigate("/dashboard");
         } else {
           setErrorMessage(data.message);
         }
@@ -66,7 +64,7 @@ const LoginPage = () => {
       });
   };
 
-  // Fonction pour basculer l'affichage du mot de passe
+  // Fonction pour voir le mot de passe
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };

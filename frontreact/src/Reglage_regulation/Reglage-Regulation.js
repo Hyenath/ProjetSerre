@@ -12,7 +12,7 @@ const Regulation = () => {
   const [editingField, setEditingField] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // 🔐 Vérifie l'authentification
+  //Vérifie l'authentification
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
@@ -43,7 +43,7 @@ const Regulation = () => {
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.error("❌ Erreur de vérification du token :", error);
+        console.error("Erreur de vérification du token :", error);
         setErrorMessage("Erreur de connexion au serveur.");
         navigate("/dashboard");
       }
@@ -52,7 +52,7 @@ const Regulation = () => {
     checkAuth();
   }, [navigate]);
 
-  // ⚙️ Récupère les paramètres
+  //Récupère les paramètres
   useEffect(() => {
     const fetchSettings = async () => {
       const token = localStorage.getItem("token");
@@ -66,7 +66,7 @@ const Regulation = () => {
         });
 
         const data = await response.json();
-        console.log("⚙️ Paramètres reçus :", data);
+        console.log("Paramètres reçus :", data);
 
         if (response.ok && data.success && data.result.length > 0) {
           setSettings(data.result[0]);
@@ -75,7 +75,7 @@ const Regulation = () => {
           setErrorMessage(data.message || "Impossible de charger les paramètres.");
         }
       } catch (error) {
-        console.error("❌ Erreur lors du fetch :", error);
+        console.error("Erreur lors du fetch :", error);
         setErrorMessage("Erreur lors de la récupération des paramètres.");
       }
     };
@@ -117,7 +117,7 @@ const Regulation = () => {
         setErrorMessage(data.message || "Erreur de mise à jour.");
       }
     } catch (error) {
-      console.error("❌ Erreur lors de l'envoi :", error);
+      console.error("Erreur lors de l'envoi :", error);
       setErrorMessage("Erreur de communication avec le serveur.");
     }
   };
@@ -125,7 +125,7 @@ const Regulation = () => {
   if (!isAuthenticated) {
     return (
       <div className="unauthorized">
-        <p>{errorMessage || "🔐 Authentification en cours..."}</p>
+        <p>{errorMessage || "Authentification en cours..."}</p>
       </div>
     );
   }
@@ -133,7 +133,7 @@ const Regulation = () => {
   return (
     <>
       <div className="settings-container">
-        <h2>📊 Paramètres de la serre</h2>
+        <h2>Paramètres de la serre</h2>
         {errorMessage && <p className="error-message">{errorMessage}</p>}
         {settings ? (
           <ul>
@@ -148,10 +148,10 @@ const Regulation = () => {
                       onChange={(e) => handleChange(key, e.target.value)}
                     />
                     <button onClick={() => handleSave(key)} className="save-btn">
-                      💾 Sauvegarder
+                      Sauvegarder
                     </button>
                     <button onClick={() => setEditingField(null)} className="cancel-btn">
-                      ❌ Annuler
+                      Annuler
                     </button>
                   </>
                 ) : (
@@ -163,7 +163,7 @@ const Regulation = () => {
             ))}
           </ul>
         ) : (
-          <p className="loading">🔄 Chargement des paramètres...</p>
+          <p className="loading">Chargement des paramètres...</p>
         )}
       </div>
       <Footer />

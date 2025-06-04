@@ -58,7 +58,7 @@ const DetailsDash = () => {
     checkAuth();
   }, [navigate]);
 
-  // 📊 Récupération des données seulement si authentifié
+  // Récupération des données seulement si authentifié
   useEffect(() => {
     if (!isAuthenticated) return;
 
