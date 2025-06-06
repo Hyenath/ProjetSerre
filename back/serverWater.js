@@ -1,63 +1,83 @@
+// serverWater.js
 const express = require('express');
-const cors = require("cors");
+const cors = require('cors');
 const bodyParser = require('body-parser');
-
-const WaterManager = require('./class/WaterManager'); // Suppression du dossier "class/" si non nécessaire
+const WaterManager = require('./class/WaterManager');
 
 const app = express();
-app.use(bodyParser.json());
 app.use(cors());
+app.use(bodyParser.json());
 
-const mainWaterManager = {
-    waterManager: new WaterManager('192.168.65.253', 502) // ← IP & port du Poseidon
-};
+const waterManager = new WaterManager('192.168.65.253', 502);
 
-// Route pour récupérer les données des capteurs
-app.get('/poseidon/sensors', async (req, res) => {
-    try {
-        const sensorsData = await mainWaterManager.waterManager.poseidon.getoutdoorTemperature();
-        return res.json(sensorsData);
-    } catch (error) {
-        console.error("Erreur dans /poseidon/sensors:", error);
-        return res.status(500).json({ message: "Erreur lors de la récupération des données" });
-    }
-});
-
-// Route pour savoir si l'eau est gelée
-app.get('/poseidon/waterFrozen', async (req, res) => {
-    try {
-        const isFrozen = await mainWaterManager.waterManager.poseidon.isWaterFrozen();
-        return res.json({ waterFrozen: isFrozen });
-    } catch (error) {
-        console.error("Erreur dans /poseidon/waterFrozen:", error);
-        return res.status(500).json({ message: "Erreur lors de la vérification de l'eau gelée" });
-    }
-});
-
-// Route pour récupérer l'état de la source d'eau
-app.get('/waterManager/source', async (req, res) => {
-    try {
-        await mainWaterManager.waterManager.switchWaterSource();
-        return res.json({ waterSource: mainWaterManager.waterManager.waterSource });
-    } catch (error) {
-        console.error("Erreur dans /waterManager/source:", error);
-        return res.status(500).json({ message: "Erreur lors de la récupération de la source d'eau" });
-    }
-});
-
-// Route pour récupérer la température extérieure
+// -------- GET Sensors --------
 app.get('/poseidon/temperature/outdoor', async (req, res) => {
     try {
-        const temperatureData = await mainWaterManager.waterManager.poseidon.getoutdoorTemperature();
-        return res.json(temperatureData);
-    } catch (error) {
-        console.error("Erreur dans /poseidon/temperature/outdoor:", error);
-        return res.status(500).json({ message: "Erreur lors de la récupération de la température extérieure" });
+        const temperature = await waterManager.getOutdoorTemperature();
+        res.json({ temperature });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
-// Lancement du serveur
+app.get('/poseidon/waterFrozen', async (req, res) => {
+    try {
+        const frozen = await waterManager.isWaterFrozen();
+        res.json({ waterFrozen: frozen });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/poseidon/rainWaterLevel', async (req, res) => {
+    try {
+        const level = await waterManager.getRainWaterLevel();
+        res.json({ rainWaterLevel: level });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/poseidon/rainWaterUsed', async (req, res) => {
+    try {
+        const used = await waterManager.getRainWaterUsed();
+        res.json({ rainWaterUsed: used });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/poseidon/tapWaterUsed', async (req, res) => {
+    try {
+        const used = await waterManager.getTapWaterUsed();
+        res.json({ tapWaterUsed: used });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// -------- POST Actuators --------
+app.post('/poseidon/valve', async (req, res) => {
+    const { source } = req.body;
+    try {
+        await waterManager.setWaterSource(source);
+        res.json({ message: `Valve réglée sur ${source}` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/poseidon/pump', async (req, res) => {
+    const { state } = req.body;
+    try {
+        await waterManager.setPumpState(state);
+        res.json({ message: `Pompe mise à ${state}` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 const PORT = 3002;
 app.listen(PORT, () => {
-    console.log(`Serveur API Poseidon lancé sur http://localhost:${PORT}`);
+    console.log(`Serveur Poseidon opérationnel sur http://localhost:${PORT}`);
 });

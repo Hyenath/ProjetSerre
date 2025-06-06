@@ -4,12 +4,16 @@ const checkToken = require('../Middlewares/check-token.js');
 const RegulationManager = require('./RegulationManager');
 const TCW = require('./TCW241');
 
+const WaterManager = require('./WaterManager');
+const Poseidon = require('./Poseidon');
+
 const mail = require('../config.json').mail;
 
 class MainManager {
     constructor(app) {
         this.database = 'mysql';
-        this.waterManager = null; // Instance de WaterManager
+        this.poseidon = new Poseidon('192.168.65.253', 503);
+        this.waterManager = new WaterManager(this.poseidon); // Instance de WaterManager
         this.tcw = new TCW('192.168.65.252', 502);
         this.regulationManager = new RegulationManager(this.tcw); // Instance de RegulationManager
         this.wss = null; // Instance de WebSocketServer
@@ -23,7 +27,7 @@ class MainManager {
         this.regulationManager.updateSystem();
         
         // Vérification de la température intérieure
-        if (this.regulationManager.indoorTemperature < 1) {
+        if (this.regulationManager.indoorTemperature < 1 || this.waterManager.outdoorTemperature < 1) {
             this.sendMailAlert("Température intérieure inférieure à 1°C");
         }
     }
